@@ -1,47 +1,60 @@
-import logo from './logo.svg';
 import './App.css';
-import EmployeeAPI from "./api/service";
+import ClientAPI from "./api/services";
 import Table from "./Table";
+import Form from "./Form";
 import { useState } from "react";
 
-function App() {
-  const [employees, setEmployees] = useState(EmployeeAPI.all());пше
-  const [name, setName] = useState("");
-  const [job, setJob] = useState("");
+const initialClients = ClientAPI.all();
 
-  const handleDelete = (indexToRemove) => {
-    setEmployees((prevEmployees) =>
-      prevEmployees.filter((_, index) => index !== indexToRemove)
-    );
+function App() {
+  const [clients, setClients] = useState(initialClients);
+  const [editingClient, setEditingClient] = useState(null);
+
+  const delClient = (id) => {
+    if (ClientAPI.delete(id)) {
+      setClients(clients.filter((client) => client.id !== id));
+    }
   };
 
-  const handleAdd = () => {
-    if (name.trim() === "" || job.trim() === "") return;
+  const addClient = (client) => {
+    const newClient = ClientAPI.add(client);
+    if(newClient) {
+      setClients([...clients, newClient]);
+    }
+  };
 
-    const newEmployee = { name, job };
-    setEmployees((prevEmployees) => [...prevEmployees, newEmployee]);
-    setName("");
-    setJob("");
+  const updateClient = (client) => {
+    const updatedClient = ClientAPI.update(client);
+    if(updatedClient) {
+      setClients(clients.map(c => c.id === client.id ? updatedClient : c));
+      setEditingClient(null);
+    }
+  };
+
+  const startEdit = (client) => {
+    setEditingClient(client);
+  };
+
+  const cancelEdit = () => {
+    setEditingClient(null);
   };
 
   return (
     <div className="App">
-      <h2>Add Employee</h2>
-      <input
-        type="text"
-        placeholder="Name"
-        value={name}
-        onChange={(e) => setName(e.target.value)}
+      <h1>Клиентская база интернет-магазина электроники</h1>
+      
+      <Form 
+        handleSubmit={editingClient ? updateClient : addClient}
+        inClient={editingClient || {name: "", surname: "", phone: "", email: "", totalPurchases: 0}}
+        isEditing={!!editingClient}
+        onCancel={cancelEdit}
       />
-      <input
-        type="text"
-        placeholder="Job"
-        value={job}
-        onChange={(e) => setJob(e.target.value)}
+      
+      <Table 
+        clients={clients} 
+        delClient={delClient}
+        editClient={startEdit}
       />
-      <button onClick={handleAdd}>Add</button>
-
-      <Table employees={employees} onDelete={handleDelete} />
     </div>
   );
 }
