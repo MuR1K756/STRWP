@@ -2168,3 +2168,397 @@ body {
   align-items: center;
   justify-content: center;
 }
+/* Стили для модалки ставок */
+.bid-modal-content {
+  max-width: 500px;
+}
+
+.bid-modal {
+  padding: 0;
+}
+
+.bid-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.bid-header h2 {
+  color: #e9d8fd;
+  margin: 0;
+  font-size: 1.3rem;
+}
+
+.close-bid {
+  background: none;
+  border: none;
+  color: #d8c3ff;
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+.bid-content {
+  padding: 20px;
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+/* Информация о балансе */
+.balance-info {
+  background: rgba(46, 204, 113, 0.1);
+  padding: 15px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  text-align: center;
+  border: 1px solid rgba(46, 204, 113, 0.2);
+}
+
+.user-balance {
+  color: #2ecc71;
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+
+/* Секции со ставками */
+.bids-section, .my-bids-section {
+  margin-bottom: 25px;
+}
+
+.bids-section h3, .my-bids-section h3 {
+  color: #e9d8fd;
+  margin-bottom: 15px;
+  font-size: 1.1rem;
+}
+
+.no-bids {
+  color: #a78bfa;
+  text-align: center;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+}
+
+/* Список ставок */
+.bids-list, .my-bids-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.bid-item, .my-bid-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.bid-item.my-bid {
+  background: rgba(52, 152, 219, 0.1);
+  border-color: rgba(52, 152, 219, 0.3);
+}
+
+.bid-user {
+  color: #d8c3ff;
+  font-weight: 500;
+}
+
+.bid-amount {
+  color: #b06ab3;
+  font-weight: bold;
+}
+
+.cancel-bid-btn {
+  background: rgba(231, 76, 60, 0.2);
+  color: #e74c3c;
+  border: 1px solid rgba(231, 76, 60, 0.3);
+  border-radius: 4px;
+  padding: 4px 8px;
+  cursor: pointer;
+  font-size: 0.8rem;
+}
+
+.cancel-my-bid {
+  background: rgba(231, 76, 60, 0.2);
+  color: #e74c3c;
+  border: 1px solid rgba(231, 76, 60, 0.3);
+  border-radius: 6px;
+  padding: 6px 12px;
+  cursor: pointer;
+  font-size: 0.8rem;
+}
+
+/* Форма ставки */
+.bid-form {
+  background: rgba(255, 255, 255, 0.05);
+  padding: 20px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.bid-form h3 {
+  color: #e9d8fd;
+  margin-bottom: 15px;
+}
+
+.bid-hints {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  color: #a78bfa;
+  margin-top: 5px;
+}
+
+.submit-bid-btn {
+  width: 100%;
+  padding: 15px;
+  background: linear-gradient(45deg, #b06ab3, #4568dc);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 15px;
+}
+
+.submit-bid-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(176, 106, 179, 0.4);
+}
+
+.submit-bid-btn:disabled {
+  background: rgba(255, 255, 255, 0.1);
+  color: #a78bfa;
+  cursor: not-allowed;
+}
+
+/* Подтверждение отмены */
+.cancel-confirmation {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1001;
+}
+
+.confirmation-modal {
+  background: linear-gradient(135deg, rgba(74, 29, 122, 0.95) 0%, rgba(45, 27, 105, 0.95) 100%);
+  padding: 25px;
+  border-radius: 15px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  max-width: 300px;
+  text-align: center;
+}
+
+.confirmation-modal h4 {
+  color: #e9d8fd;
+  margin-bottom: 10px;
+}
+
+.confirmation-modal p {
+  color: #d8c3ff;
+  margin-bottom: 20px;
+}
+
+.confirmation-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+.confirm-cancel, .cancel-cancel {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.confirm-cancel {
+  background: rgba(46, 204, 113, 0.2);
+  color: #2ecc71;
+  border: 1px solid rgba(46, 204, 113, 0.3);
+}
+
+.cancel-cancel {
+  background: rgba(231, 76, 60, 0.2);
+  color: #e74c3c;
+  border: 1px solid rgba(231, 76, 60, 0.3);
+}
+
+/* Индикатор ставок в карточках */
+.bid-indicator {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: rgba(155, 89, 182, 0.8);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 10px;
+  font-size: 0.7rem;
+  font-weight: bold;
+}
+/* Индикаторы ставок в карточках */
+.bid-indicator {
+  background: rgba(155, 89, 182, 0.9);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 0.7rem;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.my-bid-dot {
+  color: #ffd700;
+  font-size: 0.8rem;
+}
+
+.my-bids-badge {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  background: rgba(52, 152, 219, 0.9);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 8px;
+  font-size: 0.7rem;
+  font-weight: bold;
+}
+
+.bid-price-note {
+  font-size: 0.7rem;
+  opacity: 0.8;
+  margin-left: 4px;
+}
+
+.user-bids-info {
+  font-size: 0.8rem;
+  color: #3498db;
+  margin-top: 4px;
+  font-weight: 500;
+}
+
+/* Индикаторы ставок в таблице */
+.table-bid-indicator {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  background: rgba(155, 89, 182, 0.9);
+  color: white;
+  padding: 2px 6px;
+  border-radius: 8px;
+  font-size: 0.6rem;
+  font-weight: bold;
+}
+
+.user-bid-indicator {
+  color: #ffd700;
+  margin-left: 5px;
+  font-size: 0.8rem;
+}
+
+.bid-info {
+  margin-top: 4px;
+}
+
+.bid-info small {
+  display: block;
+  font-size: 0.7rem;
+  color: #a78bfa;
+}
+
+.user-bid-info {
+  color: #3498db !important;
+  font-weight: 500;
+}
+
+/* Бейдж количества ставок в деталях скина */
+.bids-count-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: rgba(155, 89, 182, 0.9);
+  color: white;
+  padding: 8px 12px;
+  border-radius: 15px;
+  font-size: 0.8rem;
+  font-weight: bold;
+  z-index: 2;
+}
+
+/* Предпросмотр ставок в деталях скина */
+.bids-preview {
+  background: rgba(255, 255, 255, 0.05);
+  padding: 15px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.bids-preview h4 {
+  color: #e9d8fd;
+  margin-bottom: 10px;
+  font-size: 1rem;
+}
+
+.bids-preview-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.bid-preview-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.bid-preview-item.my-bid-preview {
+  background: rgba(52, 152, 219, 0.1);
+  border-color: rgba(52, 152, 219, 0.3);
+}
+
+.bid-preview-user {
+  color: #d8c3ff;
+  font-weight: 500;
+}
+
+.bid-preview-amount {
+  color: #b06ab3;
+  font-weight: bold;
+}
+
+.more-bids {
+  text-align: center;
+  color: #a78bfa;
+  font-size: 0.8rem;
+  padding: 5px;
+}
+
+/* Баланс в хедере */
+.user-balance-header {
+  background: rgba(46, 204, 113, 0.2);
+  color: #2ecc71;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-weight: 600;
+  border: 1px solid rgba(46, 204, 113, 0.3);
+}

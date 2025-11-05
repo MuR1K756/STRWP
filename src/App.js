@@ -2,10 +2,12 @@ import './App.css';
 import Table from "./Table";
 import Form from "./Form";
 import { useState, useEffect } from "react";
-import { useAuth } from './AuthContext'; // Изменен путь
-import { useCurrency } from './CurrencyContext'; // Изменен путь
+import { useAuth } from './AuthContext'; 
+import { useCurrency } from './CurrencyContext'; 
+import Login from './components/Login'; 
+import Register from './components/Register';
+import BidModal from './components/BidModal';
 
-// Класс для работы со скинами CS2 (остается без изменений)
 class SkinAPI {
   constructor() {
     this.skins = JSON.parse(localStorage.getItem('cs2SkinsMarketplace')) || [
@@ -21,7 +23,8 @@ class SkinAPI {
         sticker: "4x Starladder 2019",
         statTrak: false,
         description: "Легендарный AK-47 с уникальным красным дизайном",
-        marketUrl: "https://steamcommunity.com/market/listings/730/AK-47%20%7C%20Redline%20%28Field-Tested%29"
+        marketUrl: "https://steamcommunity.com/market/listings/730/AK-47%20%7C%20Redline%20%28Field-Tested%29",
+        bids: [] // Добавляем массив для ставок
       },
       {
         id: 2,
@@ -35,7 +38,23 @@ class SkinAPI {
         sticker: "1x Crown Foil",
         statTrak: true,
         description: "Самая желанная AWP в игре с драконом",
-        marketUrl: "https://steamcommunity.com/market/listings/730/AWP%20%7C%20Dragon%20Lore%20%28Factory%20New%29"
+        marketUrl: "https://steamcommunity.com/market/listings/730/AWP%20%7C%20Dragon%20Lore%20%28Factory%20New%29",
+        bids: [] // Добавляем массив для ставок
+      },
+      {
+        id: 3,
+        name: "M4A4 | Зверь внутри",
+        weapon: "M4A4",
+        quality: "Немного поношенное",
+        float: 0.18,
+        price: 3200,
+        imageUrl: "https://steamcommunity-a.akamaihd.net/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot621FAR17P7NdD1965O0q4yZqPv9NLPF2G5U18l4j_vM8oWg0Qew_BJvYzv7J4WUJw45ZFzV_1G_xr-7g8C76Z_JziU1uHIl4X2OylXp1u9POTI/360fx360f",
+        condition: "Полевое испытание",
+        sticker: "Нет стикеров",
+        statTrak: false,
+        description: "M4A4 с агрессивным дизайном зверя",
+        marketUrl: "https://steamcommunity.com/market/listings/730/M4A4%20%7C%20Howl%20%28Factory%20New%29",
+        bids: [] // Добавляем массив для ставок
       }
     ];
     this.saveToStorage();
@@ -54,7 +73,8 @@ class SkinAPI {
       ...skin,
       id: Date.now(),
       price: parseInt(skin.price) || 0,
-      float: parseFloat(skin.float) || 0
+      float: parseFloat(skin.float) || 0,
+      bids: [] // Добавляем пустой массив ставок для новых скинов
     };
     this.skins.push(newSkin);
     this.saveToStorage();
@@ -85,6 +105,68 @@ class SkinAPI {
   find(id) {
     return this.skins.find(skin => skin.id === id);
   }
+
+  // === МЕТОДЫ ДЛЯ СТАВОК ===
+
+  // Добавление ставки
+  addBid(skinId, userId, userName, amount) {
+    const skin = this.skins.find(s => s.id === skinId);
+    if (skin) {
+      const newBid = {
+        id: Date.now(),
+        userId,
+        userName,
+        amount,
+        timestamp: new Date().toISOString(),
+        status: 'active' // active, cancelled, won
+      };
+      
+      if (!skin.bids) skin.bids = [];
+      skin.bids.push(newBid);
+      this.saveToStorage();
+      return newBid;
+    }
+    return null;
+  }
+
+  // Отмена ставки
+  cancelBid(skinId, bidId, userId) {
+    const skin = this.skins.find(s => s.id === skinId);
+    if (skin && skin.bids) {
+      const bid = skin.bids.find(b => b.id === bidId && b.userId === userId);
+      if (bid && bid.status === 'active') {
+        bid.status = 'cancelled';
+        this.saveToStorage();
+        return bid.amount; // Возвращаем сумму для возврата на баланс
+      }
+    }
+    return 0;
+  }
+
+  // Получение ставок пользователя для скина
+  getUserBids(skinId, userId) {
+    const skin = this.skins.find(s => s.id === skinId);
+    if (skin && skin.bids) {
+      return skin.bids.filter(bid => bid.userId === userId && bid.status === 'active');
+    }
+    return [];
+  }
+
+  // Получение всех активных ставок для скина
+  getSkinBids(skinId) {
+    const skin = this.skins.find(s => s.id === skinId);
+    if (skin && skin.bids) {
+      return skin.bids.filter(bid => bid.status === 'active');
+    }
+    return [];
+  }
+
+  // Получение максимальной ставки
+  getHighestBid(skinId) {
+    const bids = this.getSkinBids(skinId);
+    if (bids.length === 0) return null;
+    return bids.reduce((max, bid) => bid.amount > max.amount ? bid : max);
+  }
 }
 
 const skinAPI = new SkinAPI();
@@ -94,10 +176,11 @@ function App() {
   const [skins, setSkins] = useState(initialSkins);
   const [editingSkin, setEditingSkin] = useState(null);
   const [selectedSkin, setSelectedSkin] = useState(null);
+  const [bidModalSkin, setBidModalSkin] = useState(null); // Скин для модалки ставок
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedWeapon, setSelectedWeapon] = useState('');
   const [authModal, setAuthModal] = useState(null); // 'login', 'register', null
-  const { user, isAuthenticated, logout } = useAuth();
+  const { user, isAuthenticated, logout, updateBalance } = useAuth();
   const { currency, setCurrency, convertPrice } = useCurrency();
 
   const deleteSkin = (id) => {
@@ -141,12 +224,40 @@ function App() {
     setSelectedSkin(null);
   };
 
+  // Функция открытия модалки ставок
   const handleMakeBid = (skin) => {
     if (!isAuthenticated) {
       setAuthModal('login');
       return;
     }
-    alert(`Ставка на скин ${skin.name} принята!`);
+    setBidModalSkin(skin);
+  };
+
+  // Функция создания ставки
+  const handleSubmitBid = (skinId, amount) => {
+    const bid = skinAPI.addBid(skinId, user.id, user.name, amount);
+    if (bid) {
+      // Списание средств с баланса
+      updateBalance(-amount);
+      
+      // Обновляем список скинов
+      setSkins(skinAPI.all());
+      alert(`✅ Ставка на ${convertPrice(amount)} принята!`);
+      setBidModalSkin(null);
+    }
+  };
+
+  // Функция отмены ставки
+  const handleCancelBid = (skinId, bidId) => {
+    const refundAmount = skinAPI.cancelBid(skinId, bidId, user.id);
+    if (refundAmount > 0) {
+      // Возврат средств на баланс
+      updateBalance(refundAmount);
+      
+      // Обновляем список скинов
+      setSkins(skinAPI.all());
+      alert(`✅ Ставка отменена. ${convertPrice(refundAmount)} возвращены на баланс.`);
+    }
   };
 
   // Фильтрация скинов
@@ -188,6 +299,7 @@ function App() {
               {isAuthenticated ? (
                 <div className="user-menu">
                   <span className="user-greeting">Привет, {user.name}!</span>
+                  <span className="user-balance-header">Баланс: {convertPrice(user.balance)}</span>
                   <button onClick={logout} className="logout-btn">
                     🚪 Выйти
                   </button>
@@ -302,19 +414,45 @@ function App() {
                     }}
                   />
                   {selectedSkin.statTrak && <div className="stattrak-badge-large">StatTrak™</div>}
+                  {/* Индикатор количества ставок */}
+                  {selectedSkin.bids && selectedSkin.bids.filter(bid => bid.status === 'active').length > 0 && (
+                    <div className="bids-count-badge">
+                      💎 {selectedSkin.bids.filter(bid => bid.status === 'active').length} ставок
+                    </div>
+                  )}
                 </div>
-                <a 
-                  href={selectedSkin.marketUrl} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="market-link"
-                >
-                  📊 Открыть в Steam Market
-                </a>
               </div>
               
               <div className="skin-info-section">
                 <h2>{selectedSkin.name}</h2>
+                
+                {/* Информация о ставках */}
+                {selectedSkin.bids && selectedSkin.bids.filter(bid => bid.status === 'active').length > 0 && (
+                  <div className="bids-preview">
+                    <h4>📊 Текущие ставки:</h4>
+                    <div className="bids-preview-list">
+                      {selectedSkin.bids
+                        .filter(bid => bid.status === 'active')
+                        .sort((a, b) => b.amount - a.amount)
+                        .slice(0, 3) // Показываем только топ-3 ставки
+                        .map((bid, index) => (
+                          <div key={bid.id} className={`bid-preview-item ${bid.userId === user?.id ? 'my-bid-preview' : ''}`}>
+                            <span className="bid-preview-user">
+                              {index === 0 ? '👑 ' : ''}{bid.userName}
+                            </span>
+                            <span className="bid-preview-amount">{convertPrice(bid.amount)}</span>
+                          </div>
+                        ))
+                      }
+                      {selectedSkin.bids.filter(bid => bid.status === 'active').length > 3 && (
+                        <div className="more-bids">
+                          + еще {selectedSkin.bids.filter(bid => bid.status === 'active').length - 3} ставок
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+                
                 <div className="skin-specs-grid">
                   <div className="spec-item">
                     <span className="spec-label">Оружие:</span>
@@ -346,8 +484,15 @@ function App() {
                 
                 <div className="price-action-section">
                   <div className="price-display">
-                    <span className="price-label">Цена:</span>
-                    <span className="price-amount">{convertPrice(selectedSkin.price)}</span>
+                    <span className="price-label">
+                      {selectedSkin.bids && selectedSkin.bids.filter(bid => bid.status === 'active').length > 0 ? 'Текущая ставка:' : 'Цена:'}
+                    </span>
+                    <span className="price-amount">
+                      {selectedSkin.bids && selectedSkin.bids.filter(bid => bid.status === 'active').length > 0 
+                        ? convertPrice(Math.max(...selectedSkin.bids.filter(bid => bid.status === 'active').map(bid => bid.amount)))
+                        : convertPrice(selectedSkin.price)
+                      }
+                    </span>
                   </div>
                   <div className="action-buttons">
                     <button 
@@ -373,6 +518,20 @@ function App() {
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Модальное окно ставок */}
+      {bidModalSkin && (
+        <div className="modal-overlay" onClick={() => setBidModalSkin(null)}>
+          <div className="modal-content bid-modal-content" onClick={(e) => e.stopPropagation()}>
+            <BidModal 
+              skin={bidModalSkin}
+              onClose={() => setBidModalSkin(null)}
+              onMakeBid={handleSubmitBid}
+              onCancelBid={handleCancelBid}
+            />
           </div>
         </div>
       )}

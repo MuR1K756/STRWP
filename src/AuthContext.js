@@ -15,9 +15,13 @@ export const AuthProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   const login = (userData) => {
-    setUser(userData);
+    const userWithBalance = {
+      ...userData,
+      balance: userData.balance || 10000 // Начальный баланс 10,000 ₽
+    };
+    setUser(userWithBalance);
     setIsAuthenticated(true);
-    localStorage.setItem('cs2_user', JSON.stringify(userData));
+    localStorage.setItem('cs2_user', JSON.stringify(userWithBalance));
   };
 
   const logout = () => {
@@ -27,16 +31,34 @@ export const AuthProvider = ({ children }) => {
   };
 
   const register = (userData) => {
-    setUser(userData);
+    const userWithBalance = {
+      ...userData,
+      balance: 10000 // Начальный баланс для новых пользователей
+    };
+    setUser(userWithBalance);
     setIsAuthenticated(true);
-    localStorage.setItem('cs2_user', JSON.stringify(userData));
+    localStorage.setItem('cs2_user', JSON.stringify(userWithBalance));
   };
 
-  // Проверяем авторизацию при загрузке
+  // Обновление баланса пользователя
+  const updateBalance = (amount) => {
+    if (user) {
+      const updatedUser = { ...user, balance: user.balance + amount };
+      setUser(updatedUser);
+      localStorage.setItem('cs2_user', JSON.stringify(updatedUser));
+    }
+  };
+
+  // Проверка авторизации при загрузке
   React.useEffect(() => {
     const savedUser = localStorage.getItem('cs2_user');
     if (savedUser) {
-      setUser(JSON.parse(savedUser));
+      const userData = JSON.parse(savedUser);
+      // Добавляем баланс если его нет у старых пользователей
+      if (!userData.balance) {
+        userData.balance = 10000;
+      }
+      setUser(userData);
       setIsAuthenticated(true);
     }
   }, []);
@@ -47,7 +69,8 @@ export const AuthProvider = ({ children }) => {
       isAuthenticated,
       login,
       logout,
-      register
+      register,
+      updateBalance
     }}>
       {children}
     </AuthContext.Provider>
