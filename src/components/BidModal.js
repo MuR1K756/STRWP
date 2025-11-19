@@ -1,19 +1,30 @@
 import React, { useState } from 'react';
-import { useAuth } from '../AuthContext';
-import { useCurrency } from '../CurrencyContext';
+import { useAppSelector, useAppDispatch } from '../hooks/redux';
+import { selectUser } from '../store/slices/authSlice';
+import { selectCurrency, selectExchangeRates, selectConvertedPrice } from '../store/slices/currencySlice';
 
 const BidModal = ({ skin, onClose, onMakeBid, onCancelBid }) => {
-  const { user } = useAuth();
-  const { convertPrice } = useCurrency();
+  const dispatch = useAppDispatch();
+  const user = useAppSelector(selectUser);
+  const currency = useAppSelector(selectCurrency);
+  const exchangeRates = useAppSelector(selectExchangeRates);
+  
+  const convertPrice = selectConvertedPrice(currency, exchangeRates);
+  
   const [bidAmount, setBidAmount] = useState(skin.price);
   const [selectedBidToCancel, setSelectedBidToCancel] = useState(null);
 
-  const userBids = skin.bids?.filter(bid => bid.userId === user.id && bid.status === 'active') || [];
+  const userBids = skin.bids?.filter(bid => bid.userId === user?.id && bid.status === 'active') || [];
   const allBids = skin.bids?.filter(bid => bid.status === 'active') || [];
   const highestBid = allBids.reduce((max, bid) => bid.amount > max.amount ? bid : max, { amount: 0 });
 
   const handleSubmitBid = (e) => {
     e.preventDefault();
+    if (!user) {
+      alert('❌ Необходимо войти в систему!');
+      return;
+    }
+    
     if (bidAmount > user.balance) {
       alert('❌ Недостаточно средств на балансе!');
       return;
@@ -30,6 +41,23 @@ const BidModal = ({ skin, onClose, onMakeBid, onCancelBid }) => {
     onCancelBid(skin.id, bidId);
     setSelectedBidToCancel(null);
   };
+
+  if (!user) {
+    return (
+      <div className="bid-modal">
+        <div className="bid-header">
+          <h2>🔒 Требуется авторизация</h2>
+          <button className="close-bid" onClick={onClose}>×</button>
+        </div>
+        <div className="bid-content">
+          <p>Для участия в ставках необходимо войти в систему.</p>
+          <button className="auth-submit-btn" onClick={onClose}>
+            Понятно
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bid-modal">

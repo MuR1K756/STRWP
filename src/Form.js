@@ -3,9 +3,11 @@ import { useState, useEffect } from "react";
 
 const Form = ({ handleSubmit, inSkin, isEditing, onCancel }) => {
     const [skin, setSkin] = useState(inSkin);
+    const [imagePreview, setImagePreview] = useState(null);
   
     useEffect(() => {
       setSkin(inSkin);
+      setImagePreview(inSkin.imageUrl || null);
     }, [inSkin]);
   
     const handleChange = (event) => {
@@ -14,6 +16,12 @@ const Form = ({ handleSubmit, inSkin, isEditing, onCancel }) => {
         ...skin, 
         [name]: type === 'checkbox' ? checked : value 
       });
+    };
+
+    const handleImageUrlChange = (event) => {
+      const { value } = event.target;
+      setSkin({ ...skin, imageUrl: value });
+      setImagePreview(value);
     };
   
     const onSubmit = (event) => {
@@ -34,6 +42,7 @@ const Form = ({ handleSubmit, inSkin, isEditing, onCancel }) => {
             description: "",
             marketUrl: ""
           });
+          setImagePreview(null);
         }
       } else {
         alert('Заполните обязательные поля: название, оружие и цена');
@@ -70,6 +79,8 @@ const Form = ({ handleSubmit, inSkin, isEditing, onCancel }) => {
               <option value="USP-S">USP-S</option>
               <option value="P250">P250</option>
               <option value="Tec-9">Tec-9</option>
+              <option value="Five-SeveN">Five-SeveN</option>
+              <option value="CZ75-Auto">CZ75-Auto</option>
             </select>
           </div>
 
@@ -108,12 +119,16 @@ const Form = ({ handleSubmit, inSkin, isEditing, onCancel }) => {
               type="url"
               name="imageUrl"
               value={skin.imageUrl}
-              onChange={handleChange}
+              onChange={handleImageUrlChange}
               placeholder="https://steamcommunity.com/image/..."
             />
-            <small className="input-hint">
-              Ссылка на изображение скина из Steam Market
-            </small>
+            {imagePreview && (
+              <div className="image-preview-small">
+                <img src={imagePreview} alt="Предпросмотр" onError={(e) => {
+                  e.target.style.display = 'none';
+                }} />
+              </div>
+            )}
           </div>
 
           <div className="form-group">

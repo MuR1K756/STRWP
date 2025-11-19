@@ -1,274 +1,197 @@
 import './App.css';
 import Table from "./Table";
 import Form from "./Form";
-import { useState, useEffect } from "react";
-import { useAuth } from './AuthContext'; 
-import { useCurrency } from './CurrencyContext'; 
 import Login from './components/Login'; 
 import Register from './components/Register';
 import BidModal from './components/BidModal';
+import { useAppSelector, useAppDispatch } from './hooks/redux';
+import { useEffect } from "react";
 
-class SkinAPI {
-  constructor() {
-    this.skins = JSON.parse(localStorage.getItem('cs2SkinsMarketplace')) || [
-      {
-        id: 1,
-        name: "AK-47 | Красная линия",
-        weapon: "AK-47",
-        quality: "Прямо с завода",
-        float: 0.15,
-        price: 8500,
-        imageUrl: "https://steamcommunity-a.akamaihd.net/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot621FAR17P7NdD1965O0q4yZqPv9NLPF2G5U18l4j_vM8oWg0Qew_BJvYzv7J4WUJw45ZFzV_1G_xr-7g8C76Z_JziU1uHIl4X2OylXp1u9POTI/360fx360f",
-        condition: "Полевое испытание",
-        sticker: "4x Starladder 2019",
-        statTrak: false,
-        description: "Легендарный AK-47 с уникальным красным дизайном",
-        marketUrl: "https://steamcommunity.com/market/listings/730/AK-47%20%7C%20Redline%20%28Field-Tested%29",
-        bids: [] // Добавляем массив для ставок
-      },
-      {
-        id: 2,
-        name: "AWP | Дракон Лора",
-        weapon: "AWP",
-        quality: "Немного поношенное",
-        float: 0.25,
-        price: 12500,
-        imageUrl: "https://steamcommunity-a.akamaihd.net/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot621FAR17P7NdD1965O0q4yZqPv9NLPF2G5U18l4j_vM8oWg0Qew_BJvYzv7J4WUJw45ZFzV_1G_xr-7g8C76Z_JziU1uHIl4X2OylXp1u9POTI/360fx360f",
-        condition: "После полевых испытаний",
-        sticker: "1x Crown Foil",
-        statTrak: true,
-        description: "Самая желанная AWP в игре с драконом",
-        marketUrl: "https://steamcommunity.com/market/listings/730/AWP%20%7C%20Dragon%20Lore%20%28Factory%20New%29",
-        bids: [] // Добавляем массив для ставок
-      },
-      {
-        id: 3,
-        name: "M4A4 | Зверь внутри",
-        weapon: "M4A4",
-        quality: "Немного поношенное",
-        float: 0.18,
-        price: 3200,
-        imageUrl: "https://steamcommunity-a.akamaihd.net/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot621FAR17P7NdD1965O0q4yZqPv9NLPF2G5U18l4j_vM8oWg0Qew_BJvYzv7J4WUJw45ZFzV_1G_xr-7g8C76Z_JziU1uHIl4X2OylXp1u9POTI/360fx360f",
-        condition: "Полевое испытание",
-        sticker: "Нет стикеров",
-        statTrak: false,
-        description: "M4A4 с агрессивным дизайном зверя",
-        marketUrl: "https://steamcommunity.com/market/listings/730/M4A4%20%7C%20Howl%20%28Factory%20New%29",
-        bids: [] // Добавляем массив для ставок
-      }
-    ];
-    this.saveToStorage();
-  }
+// Импорты из skinsSlice
+import {
+  selectFilteredSkins,
+  selectWeapons,
+  selectEditingSkin,
+  selectSelectedSkin,
+  selectSearchTerm,
+  selectSelectedWeapon,
+  setSearchTerm,
+  setSelectedWeapon,
+  setEditingSkin,
+  clearEditingSkin,
+  setSelectedSkin,
+  clearSelectedSkin,
+  addSkin,
+  updateSkin,
+  deleteSkin,
+  addBid,
+  cancelBid,
+} from './store/slices/skinsSlice';
 
-  saveToStorage() {
-    localStorage.setItem('cs2SkinsMarketplace', JSON.stringify(this.skins));
-  }
+// Импорты из authSlice
+import {
+  selectUser,
+  selectIsAuthenticated,
+  logout,
+  updateBalance,
+  setUserFromStorage,
+} from './store/slices/authSlice';
 
-  all() {
-    return this.skins;
-  }
+// Импорты из currencySlice
+import {
+  selectCurrency,
+  selectExchangeRates,
+  selectConvertedPrice,
+  setCurrency,
+} from './store/slices/currencySlice';
 
-  add(skin) {
-    const newSkin = {
-      ...skin,
-      id: Date.now(),
-      price: parseInt(skin.price) || 0,
-      float: parseFloat(skin.float) || 0,
-      bids: [] // Добавляем пустой массив ставок для новых скинов
-    };
-    this.skins.push(newSkin);
-    this.saveToStorage();
-    return newSkin;
-  }
-
-  update(skin) {
-    const index = this.skins.findIndex(s => s.id === skin.id);
-    if (index !== -1) {
-      this.skins[index] = {
-        ...skin,
-        price: parseInt(skin.price) || 0,
-        float: parseFloat(skin.float) || 0
-      };
-      this.saveToStorage();
-      return this.skins[index];
-    }
-    return null;
-  }
-
-  delete(id) {
-    const initialLength = this.skins.length;
-    this.skins = this.skins.filter(skin => skin.id !== id);
-    this.saveToStorage();
-    return this.skins.length !== initialLength;
-  }
-
-  find(id) {
-    return this.skins.find(skin => skin.id === id);
-  }
-
-  // === МЕТОДЫ ДЛЯ СТАВОК ===
-
-  // Добавление ставки
-  addBid(skinId, userId, userName, amount) {
-    const skin = this.skins.find(s => s.id === skinId);
-    if (skin) {
-      const newBid = {
-        id: Date.now(),
-        userId,
-        userName,
-        amount,
-        timestamp: new Date().toISOString(),
-        status: 'active' // active, cancelled, won
-      };
-      
-      if (!skin.bids) skin.bids = [];
-      skin.bids.push(newBid);
-      this.saveToStorage();
-      return newBid;
-    }
-    return null;
-  }
-
-  // Отмена ставки
-  cancelBid(skinId, bidId, userId) {
-    const skin = this.skins.find(s => s.id === skinId);
-    if (skin && skin.bids) {
-      const bid = skin.bids.find(b => b.id === bidId && b.userId === userId);
-      if (bid && bid.status === 'active') {
-        bid.status = 'cancelled';
-        this.saveToStorage();
-        return bid.amount; // Возвращаем сумму для возврата на баланс
-      }
-    }
-    return 0;
-  }
-
-  // Получение ставок пользователя для скина
-  getUserBids(skinId, userId) {
-    const skin = this.skins.find(s => s.id === skinId);
-    if (skin && skin.bids) {
-      return skin.bids.filter(bid => bid.userId === userId && bid.status === 'active');
-    }
-    return [];
-  }
-
-  // Получение всех активных ставок для скина
-  getSkinBids(skinId) {
-    const skin = this.skins.find(s => s.id === skinId);
-    if (skin && skin.bids) {
-      return skin.bids.filter(bid => bid.status === 'active');
-    }
-    return [];
-  }
-
-  // Получение максимальной ставки
-  getHighestBid(skinId) {
-    const bids = this.getSkinBids(skinId);
-    if (bids.length === 0) return null;
-    return bids.reduce((max, bid) => bid.amount > max.amount ? bid : max);
-  }
-}
-
-const skinAPI = new SkinAPI();
-const initialSkins = skinAPI.all();
+// Импорты из uiSlice
+import {
+  selectAuthModal,
+  selectBidModalSkin,
+  setAuthModal,
+  setBidModalSkin,
+} from './store/slices/uiSlice';
 
 function App() {
-  const [skins, setSkins] = useState(initialSkins);
-  const [editingSkin, setEditingSkin] = useState(null);
-  const [selectedSkin, setSelectedSkin] = useState(null);
-  const [bidModalSkin, setBidModalSkin] = useState(null); // Скин для модалки ставок
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedWeapon, setSelectedWeapon] = useState('');
-  const [authModal, setAuthModal] = useState(null); // 'login', 'register', null
-  const { user, isAuthenticated, logout, updateBalance } = useAuth();
-  const { currency, setCurrency, convertPrice } = useCurrency();
+  const dispatch = useAppDispatch();
+  
+  // Селекторы
+  const skins = useAppSelector(selectFilteredSkins);
+  const weapons = useAppSelector(selectWeapons);
+  const editingSkin = useAppSelector(selectEditingSkin);
+  const selectedSkin = useAppSelector(selectSelectedSkin);
+  const searchTerm = useAppSelector(selectSearchTerm);
+  const selectedWeapon = useAppSelector(selectSelectedWeapon);
+  
+  const user = useAppSelector(selectUser);
+  const isAuthenticated = useAppSelector(selectIsAuthenticated);
+  
+  const currency = useAppSelector(selectCurrency);
+  const exchangeRates = useAppSelector(selectExchangeRates);
+  const convertPrice = selectConvertedPrice(currency, exchangeRates);
+  
+  const authModal = useAppSelector(selectAuthModal);
+  const bidModalSkin = useAppSelector(selectBidModalSkin);
 
-  const deleteSkin = (id) => {
-    if (skinAPI.delete(id)) {
-      setSkins(skins.filter((skin) => skin.id !== id));
+  // Загрузка пользователя из localStorage при запуске
+  useEffect(() => {
+    const savedUser = localStorage.getItem('cs2_user');
+    if (savedUser) {
+      try {
+        const userData = JSON.parse(savedUser);
+        // Добавляем баланс если его нет у старых пользователей
+        if (!userData.balance) {
+          userData.balance = 10000;
+        }
+        dispatch(setUserFromStorage(userData));
+      } catch (error) {
+        console.error('Ошибка загрузки пользователя:', error);
+        localStorage.removeItem('cs2_user');
+      }
     }
+  }, [dispatch]);
+
+  // Обработчики скинов
+  const handleDeleteSkin = (id) => {
+    dispatch(deleteSkin(id));
   };
 
-  const addSkin = (skin) => {
-    const newSkin = skinAPI.add(skin);
-    if(newSkin) {
-      setSkins([...skins, newSkin]);
-    }
+  const handleAddSkin = (skin) => {
+    dispatch(addSkin(skin));
   };
 
-  const updateSkin = (skin) => {
-    const updatedSkin = skinAPI.update(skin);
-    if(updatedSkin) {
-      setSkins(skins.map(s => s.id === skin.id ? updatedSkin : s));
-      setEditingSkin(null);
-    }
+  const handleUpdateSkin = (skin) => {
+    dispatch(updateSkin(skin));
+    dispatch(clearEditingSkin());
   };
 
-  const startEdit = (skin) => {
+  const handleStartEdit = (skin) => {
     if (!isAuthenticated) {
-      setAuthModal('login');
+      dispatch(setAuthModal('login'));
       return;
     }
-    setEditingSkin(skin);
+    dispatch(setEditingSkin(skin));
   };
 
-  const cancelEdit = () => {
-    setEditingSkin(null);
+  const handleCancelEdit = () => {
+    dispatch(clearEditingSkin());
   };
 
-  const showSkinDetails = (skin) => {
-    setSelectedSkin(skin);
+  const handleShowSkinDetails = (skin) => {
+    dispatch(setSelectedSkin(skin));
   };
 
-  const closeSkinDetails = () => {
-    setSelectedSkin(null);
+  const handleCloseSkinDetails = () => {
+    dispatch(clearSelectedSkin());
   };
 
-  // Функция открытия модалки ставок
+  // Обработчики ставок
   const handleMakeBid = (skin) => {
     if (!isAuthenticated) {
-      setAuthModal('login');
+      dispatch(setAuthModal('login'));
       return;
     }
-    setBidModalSkin(skin);
+    dispatch(setBidModalSkin(skin));
   };
 
-  // Функция создания ставки
   const handleSubmitBid = (skinId, amount) => {
-    const bid = skinAPI.addBid(skinId, user.id, user.name, amount);
-    if (bid) {
-      // Списание средств с баланса
-      updateBalance(-amount);
-      
-      // Обновляем список скинов
-      setSkins(skinAPI.all());
-      alert(`✅ Ставка на ${convertPrice(amount)} принята!`);
-      setBidModalSkin(null);
-    }
+    if (!user) return;
+    
+    dispatch(addBid({
+      skinId,
+      userId: user.id,
+      userName: user.name,
+      amount
+    }));
+    dispatch(updateBalance(-amount));
+    dispatch(setBidModalSkin(null));
   };
 
-  // Функция отмены ставки
   const handleCancelBid = (skinId, bidId) => {
-    const refundAmount = skinAPI.cancelBid(skinId, bidId, user.id);
+    if (!user) return;
+    
+    const refundAmount = dispatch(cancelBid({
+      skinId,
+      bidId,
+      userId: user.id
+    }));
     if (refundAmount > 0) {
-      // Возврат средств на баланс
-      updateBalance(refundAmount);
-      
-      // Обновляем список скинов
-      setSkins(skinAPI.all());
-      alert(`✅ Ставка отменена. ${convertPrice(refundAmount)} возвращены на баланс.`);
+      dispatch(updateBalance(refundAmount));
     }
   };
 
-  // Фильтрация скинов
-  const filteredSkins = skins.filter(skin => {
-    const matchesSearch = skin.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         skin.weapon.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesWeapon = !selectedWeapon || skin.weapon === selectedWeapon;
-    return matchesSearch && matchesWeapon;
-  });
+  // Обработчики UI
+  const handleLogout = () => {
+    dispatch(logout());
+  };
 
-  const weapons = [...new Set(skins.map(skin => skin.weapon))];
+  const handleSetCurrency = (newCurrency) => {
+    dispatch(setCurrency(newCurrency));
+  };
+
+  const handleSetSearchTerm = (term) => {
+    dispatch(setSearchTerm(term));
+  };
+
+  const handleSetSelectedWeapon = (weapon) => {
+    dispatch(setSelectedWeapon(weapon));
+  };
+
+  const handleCloseAuthModal = () => {
+    dispatch(setAuthModal(null));
+  };
+
+  const handleCloseBidModal = () => {
+    dispatch(setBidModalSkin(null));
+  };
+
+  // Статистика для хедера
+  const totalSkins = skins.length;
+  const totalBids = skins.reduce((sum, skin) => 
+    sum + (skin.bids ? skin.bids.filter(bid => bid.status === 'active').length : 0), 0
+  );
+  const totalValue = skins.reduce((sum, skin) => sum + skin.price, 0);
 
   return (
     <div className="App">
@@ -285,7 +208,7 @@ function App() {
             <div className="currency-selector">
               <select 
                 value={currency} 
-                onChange={(e) => setCurrency(e.target.value)}
+                onChange={(e) => handleSetCurrency(e.target.value)}
                 className="currency-select"
               >
                 <option value="RUB">₽ RUB</option>
@@ -300,20 +223,20 @@ function App() {
                 <div className="user-menu">
                   <span className="user-greeting">Привет, {user.name}!</span>
                   <span className="user-balance-header">Баланс: {convertPrice(user.balance)}</span>
-                  <button onClick={logout} className="logout-btn">
+                  <button onClick={handleLogout} className="logout-btn">
                     🚪 Выйти
                   </button>
                 </div>
               ) : (
                 <div className="auth-buttons-group">
                   <button 
-                    onClick={() => setAuthModal('login')}
+                    onClick={() => dispatch(setAuthModal('login'))}
                     className="auth-btn login-btn"
                   >
                     🔐 Войти
                   </button>
                   <button 
-                    onClick={() => setAuthModal('register')}
+                    onClick={() => dispatch(setAuthModal('register'))}
                     className="auth-btn register-btn"
                   >
                     🎯 Регистрация
@@ -334,14 +257,14 @@ function App() {
                 type="text"
                 placeholder="🔍 Поиск по названию или оружию..."
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={(e) => handleSetSearchTerm(e.target.value)}
                 className="search-input"
               />
             </div>
             <div className="weapon-filter">
               <select 
                 value={selectedWeapon} 
-                onChange={(e) => setSelectedWeapon(e.target.value)}
+                onChange={(e) => handleSetSelectedWeapon(e.target.value)}
                 className="weapon-select"
               >
                 <option value="">Все оружия</option>
@@ -351,7 +274,7 @@ function App() {
               </select>
             </div>
             <div className="results-count">
-              Найдено: {filteredSkins.length} скинов
+              Найдено: {totalSkins} скинов • {totalBids} активных ставок
             </div>
           </div>
         </div>
@@ -364,7 +287,7 @@ function App() {
             {/* Сайдбар с формой */}
             <aside className="sidebar">
               <Form 
-                handleSubmit={editingSkin ? updateSkin : addSkin}
+                handleSubmit={editingSkin ? handleUpdateSkin : handleAddSkin}
                 inSkin={editingSkin || {
                   name: "", 
                   weapon: "", 
@@ -379,17 +302,17 @@ function App() {
                   marketUrl: ""
                 }}
                 isEditing={!!editingSkin}
-                onCancel={cancelEdit}
+                onCancel={handleCancelEdit}
               />
             </aside>
 
             {/* Основная сетка скинов */}
             <section className="skins-section">
               <Table 
-                skins={filteredSkins} 
-                deleteSkin={deleteSkin}
-                editSkin={startEdit}
-                showSkinDetails={showSkinDetails}
+                skins={skins} 
+                deleteSkin={handleDeleteSkin}
+                editSkin={handleStartEdit}
+                showSkinDetails={handleShowSkinDetails}
                 onMakeBid={handleMakeBid}
               />
             </section>
@@ -399,9 +322,9 @@ function App() {
 
       {/* Модальное окно с деталями скина */}
       {selectedSkin && (
-        <div className="modal-overlay" onClick={closeSkinDetails}>
+        <div className="modal-overlay" onClick={handleCloseSkinDetails}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <button className="close-button" onClick={closeSkinDetails}>×</button>
+            <button className="close-button" onClick={handleCloseSkinDetails}>×</button>
             <div className="skin-details">
               <div className="skin-image-section">
                 <div className="skin-image-container">
@@ -421,6 +344,14 @@ function App() {
                     </div>
                   )}
                 </div>
+                <a 
+                  href={selectedSkin.marketUrl} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="market-link"
+                >
+                  📊 Открыть в Steam Market
+                </a>
               </div>
               
               <div className="skin-info-section">
@@ -434,7 +365,7 @@ function App() {
                       {selectedSkin.bids
                         .filter(bid => bid.status === 'active')
                         .sort((a, b) => b.amount - a.amount)
-                        .slice(0, 3) // Показываем только топ-3 ставки
+                        .slice(0, 3)
                         .map((bid, index) => (
                           <div key={bid.id} className={`bid-preview-item ${bid.userId === user?.id ? 'my-bid-preview' : ''}`}>
                             <span className="bid-preview-user">
@@ -505,11 +436,11 @@ function App() {
                       className="edit-in-modal-button"
                       onClick={() => {
                         if (!isAuthenticated) {
-                          setAuthModal('login');
+                          dispatch(setAuthModal('login'));
                           return;
                         }
                         setEditingSkin(selectedSkin);
-                        closeSkinDetails();
+                        handleCloseSkinDetails();
                       }}
                     >
                       ✏️ Редактировать
@@ -524,11 +455,11 @@ function App() {
 
       {/* Модальное окно ставок */}
       {bidModalSkin && (
-        <div className="modal-overlay" onClick={() => setBidModalSkin(null)}>
+        <div className="modal-overlay" onClick={handleCloseBidModal}>
           <div className="modal-content bid-modal-content" onClick={(e) => e.stopPropagation()}>
             <BidModal 
               skin={bidModalSkin}
-              onClose={() => setBidModalSkin(null)}
+              onClose={handleCloseBidModal}
               onMakeBid={handleSubmitBid}
               onCancelBid={handleCancelBid}
             />
@@ -538,17 +469,17 @@ function App() {
 
       {/* Модальное окно авторизации */}
       {authModal && (
-        <div className="modal-overlay" onClick={() => setAuthModal(null)}>
+        <div className="modal-overlay" onClick={handleCloseAuthModal}>
           <div className="auth-modal-container" onClick={(e) => e.stopPropagation()}>
             {authModal === 'login' ? (
               <Login 
-                onClose={() => setAuthModal(null)}
-                switchToRegister={() => setAuthModal('register')}
+                onClose={handleCloseAuthModal}
+                switchToRegister={() => dispatch(setAuthModal('register'))}
               />
             ) : (
               <Register 
-                onClose={() => setAuthModal(null)}
-                switchToLogin={() => setAuthModal('login')}
+                onClose={handleCloseAuthModal}
+                switchToLogin={() => dispatch(setAuthModal('login'))}
               />
             )}
           </div>
@@ -559,6 +490,11 @@ function App() {
       <footer className="app-footer">
         <div className="container">
           <p>CS2 Skin Market &copy; 2024 - Торговая площадка скинов Counter-Strike 2</p>
+          <div className="footer-stats">
+            <span>Скинов: {totalSkins}</span>
+            <span>Ставок: {totalBids}</span>
+            <span>Общая стоимость: {convertPrice(totalValue)}</span>
+          </div>
           <div className="currency-info">
             <small>Курсы валют: 1 RUB = 0.011 USD = 0.036 BYN</small>
           </div>

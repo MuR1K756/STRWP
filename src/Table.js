@@ -1,11 +1,22 @@
-import React, { useState } from "react";
-import { useCurrency } from './CurrencyContext';
-import { useAuth } from './AuthContext';
+import React from "react";
+import { useAppSelector, useAppDispatch } from './hooks/redux';
+import { selectViewMode, setViewMode } from './store/slices/uiSlice';
+import { selectCurrency, selectExchangeRates, selectConvertedPrice } from './store/slices/currencySlice';
+import { selectUser } from './store/slices/authSlice';
 
 const Table = ({ skins, deleteSkin, editSkin, showSkinDetails, onMakeBid }) => {
-  const [viewMode, setViewMode] = useState('grid'); // 'grid' или 'table'
-  const { convertPrice } = useCurrency();
-  const { user } = useAuth();
+  const dispatch = useAppDispatch();
+  
+  const viewMode = useAppSelector(selectViewMode);
+  const currency = useAppSelector(selectCurrency);
+  const exchangeRates = useAppSelector(selectExchangeRates);
+  const user = useAppSelector(selectUser);
+  
+  const convertPrice = selectConvertedPrice(currency, exchangeRates);
+
+  const handleSetViewMode = (mode) => {
+    dispatch(setViewMode(mode));
+  };
 
   if (!skins || skins.length === 0) {
     return (
@@ -34,13 +45,13 @@ const Table = ({ skins, deleteSkin, editSkin, showSkinDetails, onMakeBid }) => {
         <div className="view-controls">
           <button 
             className={`view-btn ${viewMode === 'grid' ? 'active' : ''}`}
-            onClick={() => setViewMode('grid')}
+            onClick={() => handleSetViewMode('grid')}
           >
             🎴 Сетка
           </button>
           <button 
             className={`view-btn ${viewMode === 'table' ? 'active' : ''}`}
-            onClick={() => setViewMode('table')}
+            onClick={() => handleSetViewMode('table')}
           >
             📊 Таблица
           </button>
