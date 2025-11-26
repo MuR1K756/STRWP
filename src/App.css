@@ -2670,3 +2670,778 @@ body {
   padding: 5px 10px;
   border-radius: 8px;
 }
+
+
+/* CSS переменные для светлой темы */
+:root {
+  --bg-primary: #ffffff;
+  --bg-secondary: #f8f9fa;
+  --bg-tertiary: #e9ecef;
+  --text-primary: #212529;
+  --text-secondary: #6c757d;
+  --text-muted: #adb5bd;
+  --border-color: #dee2e6;
+  --shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  --shadow-hover: 0 4px 20px rgba(0, 0, 0, 0.15);
+  --accent-primary: #4ecdc4;
+  --accent-secondary: #45b7af;
+  --success: #28a745;
+  --warning: #ffc107;
+  --danger: #dc3545;
+  --card-bg: #ffffff;
+  --modal-bg: #ffffff;
+  --input-bg: #ffffff;
+  --header-bg: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+/* CSS переменные для темной темы */
+[data-theme="dark"] {
+  --bg-primary: #1a1a2e;
+  --bg-secondary: #16213e;
+  --bg-tertiary: #0f3460;
+  --text-primary: #e9ecef;
+  --text-secondary: #adb5bd;
+  --text-muted: #6c757d;
+  --border-color: #2d3748;
+  --shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+  --shadow-hover: 0 4px 20px rgba(0, 0, 0, 0.4);
+  --accent-primary: #4ecdc4;
+  --accent-secondary: #45b7af;
+  --success: #28a745;
+  --warning: #ffc107;
+  --danger: #dc3545;
+  --card-bg: #16213e;
+  --modal-bg: #1a1a2e;
+  --input-bg: #0f3460;
+  --header-bg: linear-gradient(135deg, #0f3460 0%, #1a1a2e 100%);
+}
+
+/* Базовые стили */
+.App {
+  min-height: 100vh;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  transition: all 0.3s ease;
+}
+
+/* Хедер */
+.app-header {
+  background: var(--header-bg);
+  color: white;
+  padding: 1rem 0;
+  box-shadow: var(--shadow);
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+.header-controls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+/* Переключатель темы */
+.theme-toggle-btn {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 1.2rem;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+}
+
+.theme-toggle-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.1);
+}
+
+/* Секция фильтров */
+.filters-section {
+  background: var(--bg-secondary);
+  padding: 1.5rem 0;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.filters-grid {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 1rem;
+  align-items: center;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+.search-input, .weapon-select, .currency-select {
+  background: var(--input-bg);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+}
+
+.search-input:focus, .weapon-select:focus, .currency-select:focus {
+  outline: none;
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 2px rgba(78, 205, 196, 0.2);
+}
+
+/* Карточки скинов */
+.hybrid-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 1rem;
+  box-shadow: var(--shadow);
+  transition: all 0.3s ease;
+}
+
+.hybrid-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-hover);
+}
+
+/* Формы */
+.form-panel {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: var(--shadow);
+}
+
+.skin-form input,
+.skin-form select,
+.skin-form textarea {
+  background: var(--input-bg);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  border-radius: 6px;
+  padding: 0.5rem;
+  width: 100%;
+}
+
+.skin-form input:focus,
+.skin-form select:focus,
+.skin-form textarea:focus {
+  outline: none;
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 2px rgba(78, 205, 196, 0.2);
+}
+
+/* Модальные окна */
+.modal-overlay {
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(5px);
+}
+
+.modal-content, .auth-modal-container {
+  background: var(--modal-bg);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  border-radius: 12px;
+  box-shadow: var(--shadow-hover);
+}
+
+/* Кнопки */
+.auth-btn, .logout-btn, .btn-submit, .btn-bid {
+  background: var(--accent-primary);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.auth-btn:hover, .logout-btn:hover, .btn-submit:hover, .btn-bid:hover {
+  background: var(--accent-secondary);
+  transform: translateY(-1px);
+}
+
+/* Таблица */
+.skins-table {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+}
+
+.skins-table th {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  border-bottom: 2px solid var(--border-color);
+}
+
+.skins-table td {
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-primary);
+}
+
+/* Футер */
+.app-footer {
+  background: var(--bg-secondary);
+  border-top: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  padding: 2rem 0;
+  margin-top: 3rem;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+  .filters-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .header-content {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .header-controls {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+}
+
+
+/* CSS переменные для светлой темы */
+:root {
+  --bg-primary: #ffffff;
+  --bg-secondary: #f8f9fa;
+  --bg-tertiary: #e9ecef;
+  --text-primary: #212529;
+  --text-secondary: #6c757d;
+  --text-muted: #adb5bd;
+  --border-color: #dee2e6;
+  --shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  --shadow-hover: 0 4px 20px rgba(0, 0, 0, 0.15);
+  --accent-primary: #4ecdc4;
+  --accent-secondary: #45b7af;
+  --success: #28a745;
+  --warning: #ffc107;
+  --danger: #dc3545;
+  --card-bg: #ffffff;
+  --modal-bg: #ffffff;
+  --input-bg: #ffffff;
+  --header-bg: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --header-text: #ffffff;
+}
+
+/* CSS переменные для темной темы */
+[data-theme="dark"] {
+  --bg-primary: #1a1a2e;
+  --bg-secondary: #16213e;
+  --bg-tertiary: #0f3460;
+  --text-primary: #e9ecef;
+  --text-secondary: #adb5bd;
+  --text-muted: #6c757d;
+  --border-color: #2d3748;
+  --shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+  --shadow-hover: 0 4px 20px rgba(0, 0, 0, 0.4);
+  --accent-primary: #4ecdc4;
+  --accent-secondary: #45b7af;
+  --success: #28a745;
+  --warning: #ffc107;
+  --danger: #dc3545;
+  --card-bg: #16213e;
+  --modal-bg: #1a1a2e;
+  --input-bg: #0f3460;
+  --header-bg: linear-gradient(135deg, #0f3460 0%, #1a1a2e 100%);
+  --header-text: #ffffff;
+}
+
+/* Базовые стили */
+.App {
+  min-height: 100vh;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  transition: all 0.3s ease;
+}
+
+/* Хедер */
+.app-header {
+  background: var(--header-bg);
+  color: var(--header-text);
+  padding: 1rem 0;
+  box-shadow: var(--shadow);
+  position: relative;
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+.logo h1 {
+  margin: 0;
+  font-size: 1.8rem;
+  font-weight: 700;
+  background: linear-gradient(45deg, #ffffff, #e3f2fd);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.logo p {
+  margin: 0.25rem 0 0 0;
+  font-size: 0.9rem;
+  opacity: 0.9;
+  color: var(--header-text);
+}
+
+.header-controls {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+/* Красивый переключатель темы */
+.theme-toggle-wrapper {
+  display: flex;
+  align-items: center;
+}
+
+.theme-toggle {
+  position: relative;
+  display: inline-block;
+}
+
+.theme-toggle-input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+  position: absolute;
+}
+
+.theme-toggle-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  width: 70px;
+  height: 34px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 34px;
+  position: relative;
+  padding: 0 8px;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.theme-toggle-label:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.05);
+}
+
+.theme-toggle-slider {
+  position: absolute;
+  content: "";
+  height: 26px;
+  width: 26px;
+  left: 4px;
+  bottom: 2px;
+  background: linear-gradient(45deg, #ffd700, #ff8c00);
+  border-radius: 50%;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.theme-toggle-input:checked + .theme-toggle-label .theme-toggle-slider {
+  transform: translateX(36px);
+  background: linear-gradient(45deg, #667eea, #764ba2);
+}
+
+.theme-toggle-sun,
+.theme-toggle-moon {
+  font-size: 14px;
+  transition: all 0.3s ease;
+  z-index: 1;
+}
+
+.theme-toggle-sun {
+  opacity: 1;
+}
+
+.theme-toggle-moon {
+  opacity: 0.7;
+}
+
+.theme-toggle-input:checked + .theme-toggle-label .theme-toggle-sun {
+  opacity: 0.7;
+}
+
+.theme-toggle-input:checked + .theme-toggle-label .theme-toggle-moon {
+  opacity: 1;
+}
+
+/* Выбор валюты */
+.currency-selector {
+  position: relative;
+}
+
+.currency-select {
+  background: rgba(255, 255, 255, 0.15);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  padding: 0.5rem 2rem 0.5rem 1rem;
+  border-radius: 25px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  appearance: none;
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+}
+
+.currency-select:hover {
+  background: rgba(255, 255, 255, 0.25);
+  transform: scale(1.05);
+}
+
+.currency-select:focus {
+  outline: none;
+  border-color: rgba(255, 255, 255, 0.5);
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
+}
+
+.currency-selector::after {
+  content: "▼";
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: white;
+  font-size: 0.7rem;
+  pointer-events: none;
+}
+
+/* Кнопки авторизации */
+.auth-buttons-group {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.auth-btn {
+  background: rgba(255, 255, 255, 0.2);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  padding: 0.6rem 1.2rem;
+  border-radius: 25px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+  font-weight: 500;
+}
+
+.auth-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.login-btn {
+  background: linear-gradient(45deg, rgba(78, 205, 196, 0.8), rgba(69, 183, 175, 0.8));
+}
+
+.register-btn {
+  background: linear-gradient(45deg, rgba(102, 126, 234, 0.8), rgba(118, 75, 162, 0.8));
+}
+
+/* Меню пользователя */
+.user-menu {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: rgba(255, 255, 255, 0.15);
+  padding: 0.5rem 1rem;
+  border-radius: 25px;
+  backdrop-filter: blur(10px);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.user-greeting {
+  font-weight: 500;
+  color: white;
+}
+
+.user-balance-header {
+  background: rgba(255, 255, 255, 0.2);
+  padding: 0.3rem 0.8rem;
+  border-radius: 15px;
+  font-weight: 600;
+  color: white;
+}
+
+.logout-btn {
+  background: rgba(220, 53, 69, 0.8);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  padding: 0.4rem 1rem;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 0.85rem;
+}
+
+.logout-btn:hover {
+  background: rgba(220, 53, 69, 1);
+  transform: scale(1.05);
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+  .header-content {
+    flex-direction: column;
+    gap: 1rem;
+    text-align: center;
+  }
+  
+  .header-controls {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 1rem;
+  }
+  
+  .user-menu {
+    flex-direction: column;
+    gap: 0.5rem;
+    text-align: center;
+  }
+  
+  .logo h1 {
+    font-size: 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .auth-buttons-group {
+    flex-direction: column;
+    width: 100%;
+  }
+  
+  .auth-btn {
+    width: 100%;
+    text-align: center;
+  }
+  
+  .theme-toggle-label {
+    width: 60px;
+    height: 30px;
+  }
+  
+  .theme-toggle-slider {
+    height: 22px;
+    width: 22px;
+  }
+  
+  .theme-toggle-input:checked + .theme-toggle-label .theme-toggle-slider {
+    transform: translateX(30px);
+  }
+}
+
+
+/* CSS переменные для светлой темы */
+:root {
+  --bg-primary: #ffffff;
+  --bg-secondary: #f8f9fa;
+  --bg-tertiary: #e9ecef;
+  --text-primary: #1a1a2e;
+  --text-secondary: #4a5568;
+  --text-muted: #718096;
+  --border-color: #e2e8f0;
+  --shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  --shadow-hover: 0 4px 20px rgba(0, 0, 0, 0.12);
+  --accent-primary: #4ecdc4;
+  --accent-secondary: #45b7af;
+  --success: #28a745;
+  --warning: #f39c12;
+  --danger: #e74c3c;
+  --card-bg: #ffffff;
+  --modal-bg: #ffffff;
+  --input-bg: #ffffff;
+  --header-bg: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --header-text: #ffffff;
+}
+
+/* CSS переменные для темной темы (оставляем как было) */
+[data-theme="dark"] {
+  --bg-primary: #1a1a2e;
+  --bg-secondary: #16213e;
+  --bg-tertiary: #0f3460;
+  --text-primary: #e9ecef;
+  --text-secondary: #adb5bd;
+  --text-muted: #6c757d;
+  --border-color: #2d3748;
+  --shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+  --shadow-hover: 0 4px 20px rgba(0, 0, 0, 0.4);
+  --accent-primary: #4ecdc4;
+  --accent-secondary: #45b7af;
+  --success: #28a745;
+  --warning: #ffc107;
+  --danger: #dc3545;
+  --card-bg: #16213e;
+  --modal-bg: #1a1a2e;
+  --input-bg: #0f3460;
+  --header-bg: linear-gradient(135deg, #0f3460 0%, #1a1a2e 100%);
+  --header-text: #ffffff;
+}
+
+/* Улучшаем контрастность текста в светлой теме */
+.logo h1 {
+  margin: 0;
+  font-size: 1.8rem;
+  font-weight: 700;
+  background: linear-gradient(45deg, #ffffff, #f8f9fa);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3); /* Увеличиваем тень для лучшей читаемости */
+}
+
+.logo p {
+  margin: 0.25rem 0 0 0;
+  font-size: 0.9rem;
+  opacity: 0.95; /* Увеличиваем opacity */
+  color: var(--header-text);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+/* Улучшаем контрастность элементов управления в хедере */
+.theme-toggle-btn {
+  background: rgba(255, 255, 255, 0.25);
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 1.2rem;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.theme-toggle-btn:hover {
+  background: rgba(255, 255, 255, 0.35);
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.currency-select {
+  background: rgba(255, 255, 255, 0.2);
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  color: white;
+  padding: 0.5rem 2rem 0.5rem 1rem;
+  border-radius: 25px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  appearance: none;
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.auth-btn {
+  background: rgba(255, 255, 255, 0.25);
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  color: white;
+  padding: 0.6rem 1.2rem;
+  border-radius: 25px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+  font-weight: 600; /* Делаем текст жирнее */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.auth-btn:hover {
+  background: rgba(255, 255, 255, 0.35);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+
+/* Стили для выпадающего списка валюты */
+.currency-select option {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  padding: 10px;
+  font-size: 14px;
+}
+
+/* Для светлой темы */
+[data-theme="light"] .currency-select option {
+  background: #ffffff;
+  color: #1a1a2e;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+/* Для темной темы */
+[data-theme="dark"] .currency-select option {
+  background: #1a1a2e;
+  color: #e9ecef;
+  border-bottom: 1px solid #2d3748;
+}
+
+/* Улучшаем внешний вид выпадающего списка */
+.currency-select {
+  background: rgba(255, 255, 255, 0.15);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  padding: 0.5rem 2rem 0.5rem 1rem;
+  border-radius: 25px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  appearance: none;
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.currency-select:hover {
+  background: rgba(255, 255, 255, 0.25);
+  transform: scale(1.05);
+}
+
+.currency-select:focus {
+  outline: none;
+  border-color: rgba(255, 255, 255, 0.5);
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
+}
+
+/* Стрелка выпадающего списка */
+.currency-selector {
+  position: relative;
+}
+
+.currency-selector::after {
+  content: "▼";
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: white;
+  font-size: 0.7rem;
+  pointer-events: none;
+}

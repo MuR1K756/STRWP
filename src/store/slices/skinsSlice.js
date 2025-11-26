@@ -43,7 +43,8 @@ class SkinAPI {
   }
 
   all() {
-    return this.skins;
+    // Возвращаем копию, чтобы избежать проблем с неизменяемостью
+    return JSON.parse(JSON.stringify(this.skins));
   }
 
   add(skin) {
@@ -56,19 +57,21 @@ class SkinAPI {
     };
     this.skins.push(newSkin);
     this.saveToStorage();
-    return newSkin;
+    return { ...newSkin }; // Возвращаем копию
   }
 
   update(skin) {
     const index = this.skins.findIndex(s => s.id === skin.id);
     if (index !== -1) {
+      // Создаем новый объект вместо мутации
       this.skins[index] = {
+        ...this.skins[index],
         ...skin,
         price: parseInt(skin.price) || 0,
         float: parseFloat(skin.float) || 0
       };
       this.saveToStorage();
-      return this.skins[index];
+      return { ...this.skins[index] }; // Возвращаем копию
     }
     return null;
   }
@@ -81,12 +84,13 @@ class SkinAPI {
   }
 
   find(id) {
-    return this.skins.find(skin => skin.id === id);
+    const skin = this.skins.find(skin => skin.id === id);
+    return skin ? { ...skin } : null; // Возвращаем копию
   }
 
   addBid(skinId, userId, userName, amount) {
-    const skin = this.skins.find(s => s.id === skinId);
-    if (skin) {
+    const index = this.skins.findIndex(s => s.id === skinId);
+    if (index !== -1) {
       const newBid = {
         id: Date.now(),
         userId,
@@ -96,22 +100,41 @@ class SkinAPI {
         status: 'active'
       };
       
-      if (!skin.bids) skin.bids = [];
-      skin.bids.push(newBid);
+      // Создаем новый объект скина с обновленными ставками
+      const updatedSkin = {
+        ...this.skins[index],
+        bids: [...(this.skins[index].bids || []), newBid]
+      };
+      
+      this.skins[index] = updatedSkin;
       this.saveToStorage();
-      return newBid;
+      return { ...newBid }; // Возвращаем копию
     }
     return null;
   }
 
   cancelBid(skinId, bidId, userId) {
-    const skin = this.skins.find(s => s.id === skinId);
-    if (skin && skin.bids) {
-      const bid = skin.bids.find(b => b.id === bidId && b.userId === userId);
-      if (bid && bid.status === 'active') {
-        bid.status = 'cancelled';
+    const index = this.skins.findIndex(s => s.id === skinId);
+    if (index !== -1 && this.skins[index].bids) {
+      const bidIndex = this.skins[index].bids.findIndex(b => b.id === bidId && b.userId === userId);
+      if (bidIndex !== -1 && this.skins[index].bids[bidIndex].status === 'active') {
+        const refundAmount = this.skins[index].bids[bidIndex].amount;
+        
+        // Создаем новый массив ставок с обновленной ставкой
+        const updatedBids = [...this.skins[index].bids];
+        updatedBids[bidIndex] = {
+          ...updatedBids[bidIndex],
+          status: 'cancelled'
+        };
+        
+        // Создаем новый объект скина с обновленными ставками
+        this.skins[index] = {
+          ...this.skins[index],
+          bids: updatedBids
+        };
+        
         this.saveToStorage();
-        return bid.amount;
+        return refundAmount;
       }
     }
     return 0;
@@ -186,8 +209,9 @@ const skinsSlice = createSlice({
     },
     cancelBid: (state, action) => {
       const { skinId, bidId, userId } = action.payload;
-      skinAPI.cancelBid(skinId, bidId, userId);
+      const refundAmount = skinAPI.cancelBid(skinId, bidId, userId);
       state.items = skinAPI.all();
+      return refundAmount; // ВОЗВРАЩАЕМ сумму для использования
     },
   },
 });

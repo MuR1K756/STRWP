@@ -16,7 +16,11 @@ const BidModal = ({ skin, onClose, onMakeBid, onCancelBid }) => {
 
   const userBids = skin.bids?.filter(bid => bid.userId === user?.id && bid.status === 'active') || [];
   const allBids = skin.bids?.filter(bid => bid.status === 'active') || [];
-  const highestBid = allBids.reduce((max, bid) => bid.amount > max.amount ? bid : max, { amount: 0 });
+  
+  // ИСПРАВЛЕНО: безопасное вычисление максимальной ставки
+  const highestBidAmount = allBids.length > 0 
+    ? Math.max(...allBids.map(bid => bid.amount)) 
+    : skin.price;
 
   const handleSubmitBid = (e) => {
     e.preventDefault();
@@ -29,8 +33,8 @@ const BidModal = ({ skin, onClose, onMakeBid, onCancelBid }) => {
       alert('❌ Недостаточно средств на балансе!');
       return;
     }
-    if (bidAmount <= highestBid.amount) {
-      alert(`❌ Ставка должна быть выше текущей максимальной (${convertPrice(highestBid.amount)})`);
+    if (bidAmount <= highestBidAmount) {
+      alert(`❌ Ставка должна быть выше текущей максимальной (${convertPrice(highestBidAmount)})`);
       return;
     }
     onMakeBid(skin.id, bidAmount);
@@ -127,12 +131,12 @@ const BidModal = ({ skin, onClose, onMakeBid, onCancelBid }) => {
               type="number"
               value={bidAmount}
               onChange={(e) => setBidAmount(Number(e.target.value))}
-              min={highestBid.amount + 1}
+              min={highestBidAmount + 1}
               max={user.balance}
               required
             />
             <div className="bid-hints">
-              <span>Мин: {convertPrice(highestBid.amount + 1)}</span>
+              <span>Мин: {convertPrice(highestBidAmount + 1)}</span>
               <span>Макс: {convertPrice(user.balance)}</span>
             </div>
           </div>
@@ -140,7 +144,7 @@ const BidModal = ({ skin, onClose, onMakeBid, onCancelBid }) => {
           <button 
             type="submit" 
             className="submit-bid-btn"
-            disabled={bidAmount > user.balance || bidAmount <= highestBid.amount}
+            disabled={bidAmount > user.balance || bidAmount <= highestBidAmount}
           >
             💎 Сделать ставку {convertPrice(bidAmount)}
           </button>
