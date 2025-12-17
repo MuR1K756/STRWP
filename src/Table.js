@@ -84,6 +84,7 @@ const Table = ({ skins, deleteSkin, editSkin, showSkinDetails, onMakeBid }) => {
             const activeBids = skin.bids ? skin.bids.filter(bid => bid.status === 'active') : [];
             const userBids = activeBids.filter(bid => bid.userId === user?.id);
             const highestBid = activeBids.length > 0 ? Math.max(...activeBids.map(bid => bid.amount)) : skin.price;
+            const isOwner = skin.ownerId === user?.id; // Проверяем владельца
             
             return (
               <div key={skin.id} className="hybrid-card">
@@ -98,6 +99,10 @@ const Table = ({ skins, deleteSkin, editSkin, showSkinDetails, onMakeBid }) => {
                       💎 {activeBids.length}
                       {userBids.length > 0 && <span className="my-bid-dot">⭐</span>}
                     </span>
+                  )}
+                  {/* Бейдж владельца */}
+                  {isOwner && (
+                    <span className="owner-badge" title="Ваш лот">👑</span>
                   )}
                 </div>
                 
@@ -126,8 +131,8 @@ const Table = ({ skins, deleteSkin, editSkin, showSkinDetails, onMakeBid }) => {
                   
                   <div className="skin-meta">
                     <span className="float-value">Float: {skin.float}</span>
-                    <span className={`condition-badge ${skin.condition.replace(/\s+/g, '-').toLowerCase()}`}>
-                      {skin.condition}
+                    <span className={`condition-badge ${skin.quality.replace(/\s+/g, '-').toLowerCase()}`}>
+                      {skin.quality}
                     </span>
                   </div>
                   
@@ -164,24 +169,30 @@ const Table = ({ skins, deleteSkin, editSkin, showSkinDetails, onMakeBid }) => {
                     >
                       👁️
                     </button>
-                    <button 
-                      className="btn-edit"
-                      onClick={() => editSkin(skin)}
-                      title="Редактировать"
-                    >
-                      ✏️
-                    </button>
-                    <button 
-                      className="btn-delete"
-                      onClick={() => {
-                        if (window.confirm(`Удалить скин "${skin.name}"?`)) {
-                          deleteSkin(skin.id);
-                        }
-                      }}
-                      title="Удалить"
-                    >
-                      🗑️
-                    </button>
+                    {/* Показываем кнопку редактирования только владельцу */}
+                    {isOwner && (
+                      <button 
+                        className="btn-edit"
+                        onClick={() => editSkin(skin)}
+                        title="Редактировать"
+                      >
+                        ✏️
+                      </button>
+                    )}
+                    {/* Кнопку удаления тоже только владельцу */}
+                    {isOwner && (
+                      <button 
+                        className="btn-delete"
+                        onClick={() => {
+                          if (window.confirm(`Удалить скин "${skin.name}"?`)) {
+                            deleteSkin(skin.id);
+                          }
+                        }}
+                        title="Удалить"
+                      >
+                        🗑️
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>
@@ -209,6 +220,7 @@ const Table = ({ skins, deleteSkin, editSkin, showSkinDetails, onMakeBid }) => {
                   const activeBids = skin.bids ? skin.bids.filter(bid => bid.status === 'active') : [];
                   const userBids = activeBids.filter(bid => bid.userId === user?.id);
                   const highestBid = activeBids.length > 0 ? Math.max(...activeBids.map(bid => bid.amount)) : skin.price;
+                  const isOwner = skin.ownerId === user?.id; // Проверяем владельца
                   
                   return (
                     <tr key={skin.id} className="skin-row">
@@ -231,6 +243,7 @@ const Table = ({ skins, deleteSkin, editSkin, showSkinDetails, onMakeBid }) => {
                                 💎 {activeBids.length}
                               </div>
                             )}
+                            {isOwner && <div className="owner-table-badge">👑</div>}
                           </div>
                         </div>
                       </td>
@@ -243,6 +256,9 @@ const Table = ({ skins, deleteSkin, editSkin, showSkinDetails, onMakeBid }) => {
                             )}
                             {userBids.length > 0 && (
                               <span className="user-bid-indicator" title="У вас есть ставки">⭐</span>
+                            )}
+                            {isOwner && (
+                              <span className="owner-indicator" title="Ваш лот">👑</span>
                             )}
                           </div>
                           <div className="weapon-table">{skin.weapon}</div>
@@ -257,14 +273,14 @@ const Table = ({ skins, deleteSkin, editSkin, showSkinDetails, onMakeBid }) => {
                             </span>
                           </div>
                           <div className="spec-row">
-                            <span>Состояние:</span>
-                            <span className={`condition-table ${skin.condition.replace(/\s+/g, '-').toLowerCase()}`}>
-                              {skin.condition}
-                            </span>
-                          </div>
-                          <div className="spec-row">
                             <span>Float:</span>
                             <span className="float-table">{skin.float}</span>
+                          </div>
+                          <div className="spec-row">
+                            <span>Владелец:</span>
+                            <span className="owner-info">
+                              {isOwner ? 'Вы' : 'Другой пользователь'}
+                            </span>
                           </div>
                         </div>
                       </td>
@@ -306,24 +322,30 @@ const Table = ({ skins, deleteSkin, editSkin, showSkinDetails, onMakeBid }) => {
                           >
                             👁️
                           </button>
-                          <button 
-                            className="btn-edit-table"
-                            onClick={() => editSkin(skin)}
-                            title="Редактировать"
-                          >
-                            ✏️
-                          </button>
-                          <button 
-                            className="btn-delete-table"
-                            onClick={() => {
-                              if (window.confirm(`Удалить скин "${skin.name}"?`)) {
-                                deleteSkin(skin.id);
-                              }
-                            }}
-                            title="Удалить"
-                          >
-                            🗑️
-                          </button>
+                          {/* Показываем кнопку редактирования только владельцу */}
+                          {isOwner && (
+                            <button 
+                              className="btn-edit-table"
+                              onClick={() => editSkin(skin)}
+                              title="Редактировать"
+                            >
+                              ✏️
+                            </button>
+                          )}
+                          {/* Кнопку удаления тоже только владельцу */}
+                          {isOwner && (
+                            <button 
+                              className="btn-delete-table"
+                              onClick={() => {
+                                if (window.confirm(`Удалить скин "${skin.name}"?`)) {
+                                  deleteSkin(skin.id);
+                                }
+                              }}
+                              title="Удалить"
+                            >
+                              🗑️
+                            </button>
+                          )}
                         </div>
                       </td>
                     </tr>

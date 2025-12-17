@@ -442,7 +442,7 @@ body {
 .skin-name {
   font-size: 1.1rem;
   font-weight: 600;
-  color: #e9d8fd;
+  color: #721111;
   margin-bottom: 5px;
 }
 
@@ -1508,13 +1508,6 @@ body {
   padding: 20px;
 }
 
-.skin-name {
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: #e9d8fd;
-  margin-bottom: 5px;
-}
-
 .skin-weapon {
   color: #b06ab3;
   font-size: 0.9rem;
@@ -1715,7 +1708,7 @@ body {
 }
 
 .skin-name-table strong {
-  color: #e9d8fd;
+  color: #721111;
   font-size: 1rem;
 }
 
@@ -3430,5 +3423,105 @@ body {
   color: white;
   font-size: 0.7rem;
   pointer-events: none;
+}
+
+/* Добавьте в ваш CSS файл */
+.price-input-wrapper {
+  position: relative;
+}
+
+.currency-hint {
+  margin-top: 5px;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+.currency-hint small {
+  opacity: 0.8;
+}
+
+.currency-info-form {
+  margin-top: 20px;
+  padding: 12px;
+  background: rgba(128, 0, 32, 0.1);
+  border-radius: 8px;
+  border: 1px solid rgba(128, 0, 32, 0.2);
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+}
+
+.currency-info-form small {
+  line-height: 1.4;
+}
+
+/* Добавьте в ваш CSS */
+.error {
+  border-color: #e74c3c !important;
+  background: rgba(231, 76, 60, 0.05) !important;
+}
+
+.error-message {
+  color: #e74c3c;
+  font-size: 0.8rem;
+  margin-top: 5px;
+}
+
+.warning-message {
+  background: rgba(243, 156, 18, 0.1);
+  border: 1px solid rgba(243, 156, 18, 0.3);
+  border-radius: 8px;
+  padding: 10px;
+  margin-bottom: 15px;
+  color: #f39c12;
+  text-align: center;
+}
+
+.price-input-wrapper input.error {
+  border-color: #e74c3c;
+}
+
+.owner-badge {
+  background: rgba(52, 152, 219, 0.1);
+  color: #3498db;
+  padding: 3px 8px;
+  border-radius: 10px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  border: 1px solid rgba(52, 152, 219, 0.3);
+}
+
+/* Добавьте в ваш CSS */
+.owner-badge {
+  background: linear-gradient(45deg, #ffd700, #ff8c00);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 0.7rem;
+  font-weight: bold;
+  margin-left: 5px;
+}
+
+.owner-table-badge {
+  position: absolute;
+  top: 5px;
+  left: 5px;
+  background: linear-gradient(45deg, #ffd700, #ff8c00);
+  color: white;
+  padding: 2px 6px;
+  border-radius: 8px;
+  font-size: 0.6rem;
+  font-weight: bold;
+}
+
+.owner-indicator {
+  color: #ffd700;
+  margin-left: 5px;
+  font-size: 0.9rem;
+}
+
+.owner-info {
+  color: #3498db;
+  font-weight: 600;
+  font-size: 0.85rem;
 }
 

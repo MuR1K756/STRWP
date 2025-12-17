@@ -315,24 +315,25 @@ function App() {
           <div className="content-grid">
             {/* Сайдбар с формой */}
             <aside className="sidebar">
-              <Form 
-                handleSubmit={editingSkin ? handleUpdateSkin : handleAddSkin}
-                inSkin={editingSkin || {
-                  name: "", 
-                  weapon: "", 
-                  quality: "Прямо с завода", 
-                  float: 0.00, 
-                  price: 0, 
-                  imageUrl: "",
-                  condition: "Прямо с завода",
-                  sticker: "Нет стикеров",
-                  statTrak: false,
-                  description: "",
-                  marketUrl: ""
-                }}
-                isEditing={!!editingSkin}
-                onCancel={handleCancelEdit}
-              />
+      
+<Form 
+  handleSubmit={editingSkin ? handleUpdateSkin : handleAddSkin}
+  inSkin={editingSkin || {
+    name: "", 
+    weapon: "", 
+    quality: "Прямо с завода", 
+    float: 0.00, 
+    price: 0, 
+    imageUrl: "",
+    sticker: "Нет стикеров",
+    statTrak: false,
+    description: ""
+  }}
+  isEditing={!!editingSkin}
+  onCancel={handleCancelEdit}
+  user={user} // Добавляем пользователя
+  isOwner={!editingSkin || (editingSkin.ownerId === user?.id)} // Проверяем владельца
+/>
             </aside>
 
             {/* Основная сетка скинов */}
