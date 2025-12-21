@@ -1,3 +1,4 @@
+/* Базовые стили для всего приложения */
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
@@ -7,7 +8,64 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+/* Убираем уродливые стрелочки в поле ввода цены (как на скриншоте) */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type=number] {
+  -moz-appearance: textfield;
+}
+
+/* Добавляем отступ справа, чтобы текст не наезжал на иконку валюты */
+input[type=number] {
+  padding-right: 30px !important;
+}
+
+/* Плавный переход для темной темы */
+body, div, nav, section {
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+
+
+
+/* Разделение карточек и эффекты при наведении */
+.skin-card {
+  transition: all 0.3s ease !important;
+}
+
+.skin-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.2) !important;
+}
+
+/* Стили для кнопок, чтобы они не сливались */
+button {
+  transition: filter 0.2s, transform 0.1s;
+  outline: none;
+}
+
+button:hover {
+  filter: brightness(1.1);
+}
+
+button:active {
+  transform: scale(0.96);
+}
+
+/* Красивый скроллбар для темной темы */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #1a1a2e;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #4ecdc4;
+  border-radius: 10px;
 }

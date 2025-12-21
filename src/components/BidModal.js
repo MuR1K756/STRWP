@@ -4,20 +4,19 @@ import { selectUser } from '../store/slices/authSlice';
 import { selectCurrency, selectExchangeRates, selectConvertedPrice } from '../store/slices/currencySlice';
 
 const BidModal = ({ skin, onClose, onMakeBid, onCancelBid }) => {
-  const dispatch = useAppDispatch();
   const user = useAppSelector(selectUser);
   const currency = useAppSelector(selectCurrency);
   const exchangeRates = useAppSelector(selectExchangeRates);
   
-  const convertPrice = selectConvertedPrice(currency, exchangeRates);
+  // ИСПРАВЛЕНО: Получаем функцию конвертации правильно
+  const convertPrice = useAppSelector(selectConvertedPrice);
   
-  const [bidAmount, setBidAmount] = useState(skin.price);
+  const [bidAmount, setBidAmount] = useState(skin.price + 1);
   const [selectedBidToCancel, setSelectedBidToCancel] = useState(null);
 
   const userBids = skin.bids?.filter(bid => bid.userId === user?.id && bid.status === 'active') || [];
   const allBids = skin.bids?.filter(bid => bid.status === 'active') || [];
   
-  // ИСПРАВЛЕНО: безопасное вычисление максимальной ставки
   const highestBidAmount = allBids.length > 0 
     ? Math.max(...allBids.map(bid => bid.amount)) 
     : skin.price;
@@ -38,11 +37,13 @@ const BidModal = ({ skin, onClose, onMakeBid, onCancelBid }) => {
       return;
     }
     onMakeBid(skin.id, bidAmount);
-    setBidAmount(skin.price);
+    setBidAmount(highestBidAmount + 10);
   };
 
   const handleCancelBid = (bidId) => {
-    onCancelBid(skin.id, bidId);
+    if (onCancelBid) {
+        onCancelBid(skin.id, bidId);
+    }
     setSelectedBidToCancel(null);
   };
 
@@ -55,9 +56,7 @@ const BidModal = ({ skin, onClose, onMakeBid, onCancelBid }) => {
         </div>
         <div className="bid-content">
           <p>Для участия в ставках необходимо войти в систему.</p>
-          <button className="auth-submit-btn" onClick={onClose}>
-            Понятно
-          </button>
+          <button className="auth-submit-btn" onClick={onClose}>Понятно</button>
         </div>
       </div>
     );
@@ -71,13 +70,11 @@ const BidModal = ({ skin, onClose, onMakeBid, onCancelBid }) => {
       </div>
 
       <div className="bid-content">
-        {/* Информация о балансе */}
         <div className="balance-info">
           <span>Ваш баланс: </span>
           <strong className="user-balance">{convertPrice(user.balance)}</strong>
         </div>
 
-        {/* Текущие ставки */}
         <div className="bids-section">
           <h3>📊 Текущие ставки</h3>
           {allBids.length === 0 ? (
@@ -86,15 +83,10 @@ const BidModal = ({ skin, onClose, onMakeBid, onCancelBid }) => {
             <div className="bids-list">
               {allBids.map(bid => (
                 <div key={bid.id} className={`bid-item ${bid.userId === user.id ? 'my-bid' : ''}`}>
-                  <span className="bid-user">{bid.userName}</span>
+                  <span className="bid-user">{bid.userName || 'Аноним'}</span>
                   <span className="bid-amount">{convertPrice(bid.amount)}</span>
                   {bid.userId === user.id && (
-                    <button 
-                      className="cancel-bid-btn"
-                      onClick={() => setSelectedBidToCancel(bid.id)}
-                    >
-                      ❌
-                    </button>
+                    <button className="cancel-bid-btn" onClick={() => setSelectedBidToCancel(bid.id)}>❌</button>
                   )}
                 </div>
               ))}
@@ -102,7 +94,6 @@ const BidModal = ({ skin, onClose, onMakeBid, onCancelBid }) => {
           )}
         </div>
 
-        {/* Ваши ставки */}
         {userBids.length > 0 && (
           <div className="my-bids-section">
             <h3>🎯 Ваши ставки</h3>
@@ -110,34 +101,26 @@ const BidModal = ({ skin, onClose, onMakeBid, onCancelBid }) => {
               {userBids.map(bid => (
                 <div key={bid.id} className="my-bid-item">
                   <span>Ваша ставка: {convertPrice(bid.amount)}</span>
-                  <button 
-                    className="cancel-my-bid"
-                    onClick={() => setSelectedBidToCancel(bid.id)}
-                  >
-                    Отменить
-                  </button>
+                  <button className="cancel-my-bid" onClick={() => setSelectedBidToCancel(bid.id)}>Отменить</button>
                 </div>
               ))}
             </div>
           </div>
         )}
 
-        {/* Форма новой ставки */}
         <form onSubmit={handleSubmitBid} className="bid-form">
           <h3>💸 Сделать ставку</h3>
           <div className="form-group">
-            <label>Сумма ставки:</label>
+            <label>Сумма ставки ({currency}):</label>
             <input
               type="number"
               value={bidAmount}
               onChange={(e) => setBidAmount(Number(e.target.value))}
               min={highestBidAmount + 1}
-              max={user.balance}
               required
             />
             <div className="bid-hints">
               <span>Мин: {convertPrice(highestBidAmount + 1)}</span>
-              <span>Макс: {convertPrice(user.balance)}</span>
             </div>
           </div>
           
@@ -151,25 +134,13 @@ const BidModal = ({ skin, onClose, onMakeBid, onCancelBid }) => {
         </form>
       </div>
 
-      {/* Подтверждение отмены ставки */}
       {selectedBidToCancel && (
         <div className="cancel-confirmation">
           <div className="confirmation-modal">
             <h4>Отменить ставку?</h4>
-            <p>Вы уверены, что хотите отменить свою ставку?</p>
             <div className="confirmation-buttons">
-              <button 
-                className="confirm-cancel"
-                onClick={() => handleCancelBid(selectedBidToCancel)}
-              >
-                ✅ Да, отменить
-              </button>
-              <button 
-                className="cancel-cancel"
-                onClick={() => setSelectedBidToCancel(null)}
-              >
-                ❌ Нет, оставить
-              </button>
+              <button className="confirm-cancel" onClick={() => handleCancelBid(selectedBidToCancel)}>✅ Да</button>
+              <button className="cancel-cancel" onClick={() => setSelectedBidToCancel(null)}>❌ Нет</button>
             </div>
           </div>
         </div>

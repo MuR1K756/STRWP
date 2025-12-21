@@ -1,367 +1,243 @@
-import React from "react";
-import { useState, useEffect } from "react";
-import { useAppSelector } from './hooks/redux';
-import { selectCurrency, selectExchangeRates } from './store/slices/currencySlice';
+import React, { useState } from "react";
+import { SKINS_DATABASE } from './skinsData';
+import { useAppSelector, useAppDispatch } from './hooks/redux';
+import { selectCurrency, selectExchangeRates, setCurrency } from './store/slices/currencySlice';
+import { selectTheme } from './store/slices/uiSlice';
 
-const Form = ({ handleSubmit, inSkin, isEditing, onCancel, user, isOwner }) => {
-    const [skin, setSkin] = useState(inSkin);
-    const [imagePreview, setImagePreview] = useState(null);
-    const [errors, setErrors] = useState({});
+const Form = ({ handleSubmit, inSkin, isEditing, user }) => {
+    const dispatch = useAppDispatch();
     
-    // Получаем валюту и курсы
-    const currency = useAppSelector(selectCurrency);
+    const themeMode = useAppSelector(selectTheme);
+    const isDark = themeMode === 'dark';
+    
+    // 1. ДОБАВЛЕНО: Поле quality в начальный стейт
+    const [skin, setSkin] = useState(() => ({
+        weapon: inSkin?.weapon || '',
+        name: inSkin?.name || '',
+        imageUrl: inSkin?.imageUrl || '',
+        price: inSkin?.price || 0,
+        float: inSkin?.float || '',
+        quality: inSkin?.quality || 'Прямо с завода', // Значение по умолчанию
+        description: inSkin?.description || '',
+        ownerId: inSkin?.ownerId || user?.id
+    }));
+
+    const [imagePreview, setImagePreview] = useState(inSkin?.imageUrl || null);
+    const [isCustomName, setIsCustomName] = useState(false);
+    
+    const currentCurrency = useAppSelector(selectCurrency);
     const exchangeRates = useAppSelector(selectExchangeRates);
-    
-    // Функция конвертации цены для отображения
-    const convertPriceForDisplay = (priceInRub) => {
-        const rate = exchangeRates[currency];
-        const converted = priceInRub * rate;
-        
-        switch (currency) {
-            case 'USD':
-                return `$${converted.toFixed(2)}`;
-            case 'BYN':
-                return `${converted.toFixed(2)} BYN`;
-            case 'RUB':
-            default:
-                return `${converted.toLocaleString()} ₽`;
-        }
-    };
-    
-    // Конвертируем цену из рублей в выбранную валюту для отображения в input
-    const getDisplayPrice = (priceInRub) => {
-        const rate = exchangeRates[currency];
-        return Math.round(priceInRub * rate);
-    };
-    
-    // Конвертируем цену из выбранной валюты в рубли для сохранения
-    const getPriceInRub = (priceInCurrency) => {
-        const rate = exchangeRates[currency];
-        return Math.round(priceInCurrency / rate);
-    };
-    
-    useEffect(() => {
-        setSkin(inSkin);
-        setImagePreview(inSkin.imageUrl || null);
-        setErrors({});
-    }, [inSkin]);
-    
-    // Валидация формы
-    const validateForm = () => {
-        const newErrors = {};
-        
-        if (!skin.name?.trim()) {
-            newErrors.name = 'Введите название скина';
-        } else if (skin.name.length < 3) {
-            newErrors.name = 'Название должно быть не менее 3 символов';
-        }
-        
-        if (!skin.weapon) {
-            newErrors.weapon = 'Выберите оружие';
-        }
-        
-        const displayPrice = getDisplayPrice(skin.price || 0);
-        if (!displayPrice || displayPrice <= 0) {
-            newErrors.price = 'Цена должна быть больше 0';
-        } else if (displayPrice > 100000000) {
-            newErrors.price = 'Цена слишком высока (макс. 100,000,000)';
-        }
-        
-        if (skin.imageUrl && !isValidUrl(skin.imageUrl)) {
-            newErrors.imageUrl = 'Введите корректный URL изображения';
-        }
-        
-        if (skin.float < 0 || skin.float > 1) {
-            newErrors.float = 'Float должен быть от 0 до 1';
-        }
-        
-        return newErrors;
-    };
-    
-    const isValidUrl = (url) => {
-        try {
-            new URL(url);
-            return true;
-        } catch {
-            return false;
-        }
-    };
-    
-    const handleChange = (event) => {
-        const { name, value, type, checked } = event.target;
-        
-        // Очищаем ошибку при изменении поля
-        if (errors[name]) {
-            setErrors(prev => ({ ...prev, [name]: '' }));
-        }
-        
-        if (name === 'price') {
-            const priceInCurrency = parseInt(value) || 0;
-            const priceInRub = getPriceInRub(priceInCurrency);
-            
-            setSkin({ 
-                ...skin, 
-                [name]: priceInRub
-            });
-        } else if (name === 'float') {
-            const floatValue = parseFloat(value) || 0;
-            setSkin({ 
-                ...skin, 
-                [name]: floatValue
-            });
-        } else {
-            setSkin({ 
-                ...skin, 
-                [name]: type === 'checkbox' ? checked : value 
-            });
-        }
+    const rate = exchangeRates[currentCurrency] || 1;
+    const displayValue = skin.price ? Math.round(skin.price * rate) : '';
+
+    const handleWeaponChange = (e) => {
+        const weapon = e.target.value;
+        setSkin(prev => ({ ...prev, weapon, name: '', imageUrl: '' }));
+        setImagePreview(null);
+        setIsCustomName(false);
     };
 
-    const handleImageUrlChange = (event) => {
-        const { value } = event.target;
-        if (errors.imageUrl) {
-            setErrors(prev => ({ ...prev, imageUrl: '' }));
-        }
-        setSkin({ ...skin, imageUrl: value });
-        setImagePreview(value);
-    };
-    
-    const onSubmit = (event) => {
-        event.preventDefault();
-        
-        const validationErrors = validateForm();
-        if (Object.keys(validationErrors).length > 0) {
-            setErrors(validationErrors);
+    const handleSkinNameChange = (e) => {
+        const selectedSkin = e.target.value;
+        if (selectedSkin === "CUSTOM") {
+            setIsCustomName(true);
+            setSkin(prev => ({ ...prev, name: `${prev.weapon} | ` }));
             return;
         }
-        
-        // Добавляем ID владельца при создании нового скина
-        const skinToSubmit = isEditing ? skin : {
-            ...skin,
-            ownerId: user?.id // Добавляем владельца при создании
-        };
-        
-        handleSubmit(skinToSubmit);
-        
-        if (!isEditing) {
-            // Сбрасываем форму только при успешном добавлении
-            setSkin({
-                name: "", 
-                weapon: "", 
-                quality: "Прямо с завода", 
-                float: 0.00, 
-                price: 0, 
-                imageUrl: "",
-                sticker: "Нет стикеров",
-                statTrak: false,
-                description: "",
-                ownerId: user?.id
-            });
-            setImagePreview(null);
-            setErrors({});
+
+        const skinData = SKINS_DATABASE[skin.weapon]?.find(s => s.name === selectedSkin);
+        if (skinData) {
+            const fullName = `${skin.weapon} | ${selectedSkin}`;
+            setSkin(prev => ({ ...prev, name: fullName, imageUrl: skinData.url }));
+            setImagePreview(skinData.url);
         }
     };
-    
-    // Отображаемая цена в текущей валюте
-    const displayPrice = getDisplayPrice(skin.price || 0);
-    
-    // Проверяем, может ли пользователь редактировать форму
-    const canEdit = !isEditing || isOwner;
-    
+
+    const handleFloatChange = (e) => {
+        let val = e.target.value.replace(',', '.').replace(/[^0-9.]/g, '');
+        if ((val.match(/\./g) || []).length > 1) return;
+        if (parseFloat(val) > 1) val = "1.00";
+        setSkin(prev => ({ ...prev, float: val }));
+    };
+
+    const isFormValid = skin.weapon && skin.name && skin.imageUrl && skin.price > 0;
+
+    const styles = {
+        panel: {
+            background: 'var(--bg-secondary)',
+            padding: '2rem',
+            borderRadius: '24px',
+            border: '2px solid var(--border-color)',
+            maxWidth: '500px',
+            margin: '0 auto',
+            boxShadow: 'var(--shadow)',
+            color: 'var(--text-primary)'
+        },
+        sectionTitle: { fontSize: '0.75rem', fontWeight: '900', color: 'var(--accent-primary)', textTransform: 'uppercase', marginBottom: '8px' },
+        input: {
+            width: '100%',
+            padding: '14px',
+            borderRadius: '12px',
+            background: isDark ? '#1a0505' : '#ffffff', 
+            border: '2px solid var(--border-color)',
+            color: isDark ? '#ffffff' : '#000000',
+            marginBottom: '1.2rem',
+            outline: 'none',
+            fontSize: '1rem'
+        },
+        option: {
+            background: isDark ? '#1a0505' : '#ffffff',
+            color: isDark ? '#ffffff' : '#000000',
+        },
+        currencyBtn: (active) => ({
+            flex: 1, padding: '12px', borderRadius: '10px', border: 'none',
+            background: active ? 'var(--accent-primary)' : 'var(--bg-primary)',
+            color: active ? '#fff' : 'var(--text-primary)',
+            fontWeight: 'bold', cursor: 'pointer'
+        })
+    };
+
     return (
-        <div className="form-panel">
-            <h3>{isEditing ? '✏️ Редактировать скин' : '➕ Добавить новый скин'}</h3>
-            
-            {isEditing && !isOwner && (
-                <div className="warning-message">
-                    ⚠️ Вы не можете редактировать этот лот, так как вы не его владелец
-                </div>
-            )}
-            
-            <form onSubmit={onSubmit} className="skin-form">
-                <div className="form-group">
-                    <label>Название скина *</label>
-                    <input
-                        type="text"
-                        name="name"
-                        value={skin.name}
-                        onChange={handleChange}
-                        disabled={!canEdit}
-                        required
-                        placeholder="AK-47 | Красная линия"
-                        className={errors.name ? 'error' : ''}
-                    />
-                    {errors.name && <div className="error-message">{errors.name}</div>}
-                </div>
-
-                <div className="form-group">
-                    <label>Оружие *</label>
-                    <select 
-                        name="weapon" 
-                        value={skin.weapon} 
-                        onChange={handleChange}
-                        disabled={!canEdit}
-                        required
-                        className={errors.weapon ? 'error' : ''}
-                    >
-                        <option value="">Выберите оружие</option>
-                        <option value="AK-47">AK-47</option>
-                        <option value="AWP">AWP</option>
-                        <option value="M4A4">M4A4</option>
-                        <option value="M4A1-S">M4A1-S</option>
-                        <option value="Desert Eagle">Desert Eagle</option>
-                        <option value="Glock-18">Glock-18</option>
-                        <option value="USP-S">USP-S</option>
-                        <option value="P250">P250</option>
-                        <option value="Tec-9">Tec-9</option>
-                        <option value="Five-SeveN">Five-SeveN</option>
-                        <option value="CZ75-Auto">CZ75-Auto</option>
-                    </select>
-                    {errors.weapon && <div className="error-message">{errors.weapon}</div>}
-                </div>
-
-                <div className="form-row">
-                    <div className="form-group">
-                        <label>Цена ({currency}) *</label>
-                        <div className="price-input-wrapper">
-                            <input
-                                type="number"
-                                name="price"
-                                value={displayPrice}
-                                onChange={handleChange}
-                                disabled={!canEdit}
-                                required
-                                min="0"
-                                max="100000000"
-                                placeholder={currency === 'RUB' ? "10000" : currency === 'USD' ? "110" : "360"}
-                                className={errors.price ? 'error' : ''}
-                            />
-                            <div className="currency-hint">
-                                <small>
-                                    {currency === 'RUB' ? '₽' : currency === 'USD' ? '$' : 'BYN'} 
-                                    {currency !== 'RUB' && ` (${convertPriceForDisplay(skin.price || 0)})`}
-                                </small>
-                            </div>
-                        </div>
-                        {errors.price && <div className="error-message">{errors.price}</div>}
-                    </div>
-                    
-                    <div className="form-group">
-                        <label>Float</label>
-                        <input
-                            type="number"
-                            step="0.001"
-                            name="float"
-                            value={skin.float}
-                            onChange={handleChange}
-                            disabled={!canEdit}
-                            min="0"
-                            max="1"
-                            placeholder="0.15"
-                            className={errors.float ? 'error' : ''}
-                        />
-                        {errors.float && <div className="error-message">{errors.float}</div>}
-                    </div>
-                </div>
-
-                <div className="form-group">
-                    <label>URL изображения</label>
-                    <input
-                        type="url"
-                        name="imageUrl"
-                        value={skin.imageUrl}
-                        onChange={handleImageUrlChange}
-                        disabled={!canEdit}
-                        placeholder="https://steamcommunity.com/image/..."
-                        className={errors.imageUrl ? 'error' : ''}
-                    />
-                    {errors.imageUrl && <div className="error-message">{errors.imageUrl}</div>}
-                    {imagePreview && (
-                        <div className="image-preview-small">
-                            <img src={imagePreview} alt="Предпросмотр" onError={(e) => {
-                                e.target.style.display = 'none';
-                            }} />
-                        </div>
-                    )}
-                </div>
-
-                <div className="form-row">
-                    <div className="form-group">
-                        <label>Качество</label>
-                        <select 
-                            name="quality" 
-                            value={skin.quality} 
-                            onChange={handleChange}
-                            disabled={!canEdit}
-                        >
-                            <option value="Прямо с завода">Прямо с завода</option>
-                            <option value="Немного поношенное">Немного поношенное</option>
-                            <option value="Поношенное">Поношенное</option>
-                        </select>
-                    </div>
-                    
-                    <div className="form-group">
-                        <label>Стикеры</label>
-                        <input
-                            type="text"
-                            name="sticker"
-                            value={skin.sticker}
-                            onChange={handleChange}
-                            disabled={!canEdit}
-                            placeholder="4x Starladder 2019"
-                        />
-                    </div>
-                </div>
-
-                <div className="form-group">
-                    <label>Описание</label>
-                    <textarea
-                        name="description"
-                        value={skin.description}
-                        onChange={handleChange}
-                        disabled={!canEdit}
-                        placeholder="Описание скина..."
-                        rows="3"
-                    />
-                </div>
-
-                <div className="form-group checkbox-group">
-                    <label className="checkbox-label">
-                        <input
-                            type="checkbox"
-                            name="statTrak"
-                            checked={skin.statTrak}
-                            onChange={handleChange}
-                            disabled={!canEdit}
-                        />
-                        <span className="checkmark"></span>
-                        StatTrak™
-                    </label>
-                </div>
+        <div style={styles.panel}>
+            <form onSubmit={(e) => { e.preventDefault(); if(isFormValid) handleSubmit(skin); }}>
                 
-                {canEdit && (
-                    <div className="form-buttons">
-                        <button type="submit" className="btn-submit">
-                            {isEditing ? '💾 Сохранить изменения' : '🚀 Добавить скин'}
-                        </button>
-                        {isEditing && (
-                            <button type="button" onClick={onCancel} className="btn-cancel">
-                                ❌ Отмена
-                            </button>
-                        )}
+                <p style={styles.sectionTitle}>1. Оружие</p>
+                <select style={styles.input} value={skin.weapon} onChange={handleWeaponChange} required>
+                    <option value="" style={styles.option}>Выберите пушку</option>
+                    <optgroup label="Пистолеты" style={styles.option}>
+                            <option value="Glock-18">Glock-18</option>
+                            <option value="USP-S">USP-S</option>
+                            <option value="P250">P250</option>
+                            <option value="Desert Eagle">Desert Eagle</option>
+                            <option value="Dual Berettas">Dual Berettas</option>
+                            <option value="Five-SeveN">Five-SeveN</option>
+                            <option value="Tec-9">Tec-9</option>
+                            <option value="CZ75-Auto">CZ75-Auto</option>
+                            <option value="R8 Revolver">R8 Revolver</option>
+                        </optgroup>
+
+                        <optgroup label="Винтовки" style={styles.option}>
+                            <option value="AK-47">AK-47</option>
+                            <option value="M4A4">M4A4</option>
+                            <option value="M4A1-S">M4A1-S</option>
+                            <option value="Galil AR">Galil AR</option>
+                            <option value="FAMAS">FAMAS</option>
+                            <option value="AUG">AUG</option>
+                            <option value="SG 553">SG 553</option>
+                        </optgroup>
+
+                        <optgroup label="Снайперские" style={styles.option}>
+                            <option value="AWP">AWP</option>
+                            <option value="SSG 08">SSG 08</option>
+                            <option value="SCAR-20">SCAR-20</option>
+                            <option value="G3SG1">G3SG1</option>
+                        </optgroup>
+
+                        <optgroup label="ПП (SMGs)" style={styles.option}>
+                            <option value="MAC-10">MAC-10</option>
+                            <option value="MP9">MP9</option>
+                            <option value="MP7">MP7</option>
+                            <option value="MP5-SD">MP5-SD</option>
+                            <option value="UMP-45">UMP-45</option>
+                            <option value="P90">P90</option>
+                            <option value="PP-Bizon">PP-Bizon</option>
+                        </optgroup>
+
+                        <optgroup label="Тяжелое" style={styles.option}>
+                            <option value="Nova">Nova</option>
+                            <option value="XM1014">XM1014</option>
+                            <option value="MAG-7">MAG-7</option>
+                            <option value="Sawed-Off">Sawed-Off</option>
+                            <option value="M249">M249</option>
+                            <option value="Negev">Negev</option>
+                        </optgroup>
+
+                        <optgroup label="Ножи" style={styles.option}>
+                            <option value="Karambit">Karambit</option>
+                            <option value="Butterfly Knife">Butterfly Knife</option>
+                            <option value="Bayonet">Bayonet</option>
+                            <option value="M9 Bayonet">M9 Bayonet</option>
+                            <option value="Ursus Knife">Ursus Knife</option>
+                            <option value="Skeleton Knife">Skeleton Knife</option>
+                            <option value="Talon Knife">Talon Knife</option>
+                            <option value="Stiletto Knife">Stiletto Knife</option>
+                            <option value="Gut Knife">Gut Knife</option>
+                            <option value="Shadow Daggers">Shadow Daggers</option>
+                            <option value="Bowie Knife">Bowie Knife</option>
+                            <option value="Navaja Knife">Navaja Knife</option>
+                            <option value="Paracord Knife">Paracord Knife</option>
+                            <option value="Huntsman Knife">Huntsman Knife</option>
+                            <option value="Falchion Knife">Falchion Knife</option>
+                            <option value="Survival Knife">Survival Knife</option>
+                            <option value="Nomad Knife">Nomad Knife</option>
+                            <option value="Flip Knife">Flip Knife</option>
+                            <option value="Kukri Knife">Kukri Knife</option>
+                            <option value="Classic Knife">Classic Knife</option>
+                            </optgroup>
+                </select>
+
+                <p style={styles.sectionTitle}>2. Скин</p>
+                {skin.weapon && SKINS_DATABASE[skin.weapon] && !isCustomName ? (
+                    <select 
+                        style={styles.input} 
+                        value={skin.name.split(' | ')[1] || ''} 
+                        onChange={handleSkinNameChange} 
+                        required
+                    >
+                        <option value="" style={styles.option}>Выберите раскраску</option>
+                        {SKINS_DATABASE[skin.weapon].map(s => (
+                            <option key={s.name} value={s.name} style={styles.option}>{s.name}</option>
+                        ))}
+                        <option value="CUSTOM" style={styles.option}>+ Свой вариант</option>
+                    </select>
+                ) : (
+                    <input style={styles.input} type="text" value={skin.name} onChange={(e) => setSkin({...skin, name: e.target.value})} placeholder="AK-47 | Название" required />
+                )}
+
+                {/* 2. ДОБАВЛЕНО: Новое поле выбора Качества */}
+                <p style={styles.sectionTitle}>3. Качество предмета</p>
+                <select 
+                    style={styles.input} 
+                    value={skin.quality} 
+                    onChange={(e) => setSkin({...skin, quality: e.target.value})}
+                >
+                    <option value="Прямо с завода" style={styles.option}>Прямо с завода</option>
+                    <option value="Немного поношенное" style={styles.option}>Немного поношенное</option>
+                    <option value="После полевых испытаний" style={styles.option}>После полевых испытаний</option>
+                    <option value="Поношенное" style={styles.option}>Поношенное</option>
+                    <option value="Закаленное в боях" style={styles.option}>Закаленное в боях</option>
+                </select>
+
+                <p style={styles.sectionTitle}>4. Изображение</p>
+                <input style={styles.input} type="url" value={skin.imageUrl} onChange={(e) => { setSkin({...skin, imageUrl: e.target.value}); setImagePreview(e.target.value); }} placeholder="URL картинки" required />
+                
+                {imagePreview && (
+                    <div style={{ textAlign: 'center', background: 'rgba(0,0,0,0.2)', padding: '10px', borderRadius: '15px', marginBottom: '1rem', border: '1px solid var(--border-color)' }}>
+                        <img src={imagePreview} alt="Preview" style={{ maxHeight: '80px' }} />
                     </div>
                 )}
-                
-                <div className="currency-info-form">
-                    <small>
-                        💱 Курсы: 1 RUB = {exchangeRates.USD} USD = {exchangeRates.BYN} BYN
-                        <br/>
-                        💡 Цена всегда сохраняется в рублях, а отображается в выбранной валюте
-                        {isEditing && skin.ownerId && (
-                            <><br/>👤 Владелец лота: {skin.ownerId === user?.id ? 'Вы' : 'Другой пользователь'}</>
-                        )}
-                    </small>
+
+                <p style={styles.sectionTitle}>5. Цена и Валюта</p>
+                <div style={{ display: 'flex', gap: '8px', marginBottom: '1rem' }}>
+                    {['RUB', 'BYN', 'USD'].map(cur => (
+                        <button key={cur} type="button" style={styles.currencyBtn(currentCurrency === cur)} onClick={() => dispatch(setCurrency(cur))}>
+                            {cur}
+                        </button>
+                    ))}
                 </div>
+
+                <div style={{ display: 'flex', gap: '15px' }}>
+                    <div style={{ flex: 2 }}>
+                        <input style={styles.input} type="text" value={displayValue} onChange={(e) => setSkin({...skin, price: Math.round((parseInt(e.target.value.replace(/\D/g,'')) || 0) / rate)})} placeholder="Цена" required />
+                    </div>
+                    <div style={{ flex: 1.5 }}>
+                        <input style={styles.input} type="text" value={skin.float} onChange={handleFloatChange} placeholder="Float" />
+                    </div>
+                </div>
+
+                <button type="submit" disabled={!isFormValid} style={{ width: '100%', padding: '18px', background: 'var(--accent-primary)', color: '#fff', border: 'none', borderRadius: '12px', fontWeight: 'bold', cursor: isFormValid ? 'pointer' : 'not-allowed' }}>
+                    {isEditing ? 'ОБНОВИТЬ' : 'ВЫСТАВИТЬ'}
+                </button>
             </form>
         </div>
     );

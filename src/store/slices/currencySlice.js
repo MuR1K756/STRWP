@@ -3,7 +3,7 @@ import { createSlice } from '@reduxjs/toolkit';
 const currencySlice = createSlice({
   name: 'currency',
   initialState: {
-    currency: 'RUB',
+    currency: localStorage.getItem('currency') || 'RUB',
     exchangeRates: {
       USD: 0.011,
       BYN: 0.036,
@@ -13,6 +13,7 @@ const currencySlice = createSlice({
   reducers: {
     setCurrency: (state, action) => {
       state.currency = action.payload;
+      localStorage.setItem('currency', action.payload);
     },
     updateExchangeRates: (state, action) => {
       state.exchangeRates = { ...state.exchangeRates, ...action.payload };
@@ -22,23 +23,24 @@ const currencySlice = createSlice({
 
 export const { setCurrency, updateExchangeRates } = currencySlice.actions;
 
-export default currencySlice.reducer;
+// Селекторы с защитой от undefined
+export const selectCurrency = (state) => state.currency?.currency || 'RUB';
+export const selectExchangeRates = (state) => state.currency?.exchangeRates || { RUB: 1 };
 
-// Селекторы
-export const selectCurrency = (state) => state.currency.currency;
-export const selectExchangeRates = (state) => state.currency.exchangeRates;
+export const selectConvertedPrice = (state) => {
+  const currency = state.currency?.currency || 'RUB';
+  const rates = state.currency?.exchangeRates || { RUB: 1, USD: 0.011, BYN: 0.036 };
 
-export const selectConvertedPrice = (currency, exchangeRates) => (priceInRub) => {
-  const rate = exchangeRates[currency];
-  const converted = priceInRub * rate;
-  
-  switch (currency) {
-    case 'USD':
-      return `$${converted.toFixed(2)}`;
-    case 'BYN':
-      return `${converted.toFixed(2)} BYN`;
-    case 'RUB':
-    default:
-      return `${converted.toLocaleString()} ₽`;
-  }
+  return (priceInRub) => {
+    const rate = rates[currency] || 1;
+    const converted = priceInRub * rate;
+
+    switch (currency) {
+      case 'USD': return `$${converted.toFixed(2)}`;
+      case 'BYN': return `${converted.toFixed(2)} BYN`;
+      default: return `${Math.round(converted).toLocaleString('ru-RU')} ₽`;
+    }
+  };
 };
+
+export default currencySlice.reducer;

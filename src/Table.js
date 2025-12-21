@@ -1,359 +1,151 @@
-import React from "react";
+import React, { useState } from "react"; // Добавили useState для примера
 import { useAppSelector, useAppDispatch } from './hooks/redux';
-import { selectViewMode, setViewMode } from './store/slices/uiSlice';
-import { selectCurrency, selectExchangeRates, selectConvertedPrice } from './store/slices/currencySlice';
-import { selectUser } from './store/slices/authSlice';
+import { selectViewMode, setViewMode, setBidModalSkin } from './store/slices/uiSlice';
+import { selectConvertedPrice } from './store/slices/currencySlice';
+import { setSelectedSkin } from './store/slices/skinsSlice';
 
-const Table = ({ skins, deleteSkin, editSkin, showSkinDetails, onMakeBid }) => {
+const Table = ({ skins, deleteSkin, editSkin }) => {
   const dispatch = useAppDispatch();
-  
   const viewMode = useAppSelector(selectViewMode);
-  const currency = useAppSelector(selectCurrency);
-  const exchangeRates = useAppSelector(selectExchangeRates);
-  const user = useAppSelector(selectUser);
+  const theme = useAppSelector(state => state.ui.theme);
+  const convertPrice = useAppSelector(selectConvertedPrice);
   
-  const convertPrice = selectConvertedPrice(currency, exchangeRates);
+  // Если у тебя нет newSkin в пропсах, используем этот локальный для проверки
+  const [localQuality, setLocalQuality] = useState("Прямо с завода");
 
-  const handleSetViewMode = (mode) => {
-    dispatch(setViewMode(mode));
+  const placeholderImage = "https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot621FAR17PLfYQJD_9W7m5a0mvLwOq7c2G9S68sh2L2S9N6tjVfsqkJrZWCgcY_AdlA8M1_R_lS_l-7thp_u7Z_LzXUyuXY8pSGK_vY9V3M/360fx360f";
+
+  const styles = {
+    container: { marginTop: '20px' },
+    controls: { marginBottom: '20px', display: 'flex', gap: '10px', alignItems: 'flex-end', flexWrap: 'wrap' },
+    grid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '25px' },
+    card: {
+      backgroundColor: 'var(--card-bg)',
+      borderRadius: '24px',
+      padding: '20px',
+      boxShadow: 'var(--shadow)',
+      border: '2px solid var(--border-color)',
+      display: 'flex',
+      flexDirection: 'column',
+      gap: '12px'
+    },
+    priceTag: {
+      fontSize: '1.1rem',
+      fontWeight: '800',
+      color: '#fff',
+      background: 'var(--accent-primary)',
+      padding: '4px 12px',
+      borderRadius: '8px',
+      width: 'fit-content',
+    },
+    btn: (bg, isSecondary) => ({
+      backgroundColor: bg,
+      opacity: isSecondary ? 0.8 : 1,
+      color: '#fff',
+      border: 'none',
+      padding: '10px',
+      borderRadius: '10px',
+      cursor: 'pointer',
+      fontWeight: '700',
+      transition: '0.2s'
+    }),
+    // Стиль для селектора качества
+    selectField: {
+      display: 'flex',
+      flexDirection: 'column',
+      gap: '5px',
+      marginBottom: '20px'
+    },
+    select: {
+      padding: '12px',
+      borderRadius: '12px',
+      backgroundColor: '#1a0505',
+      color: '#fff',
+      border: '1px solid #800000',
+      outline: 'none',
+      width: '200px'
+    }
   };
 
-  if (!skins || skins.length === 0) {
-    return (
-      <div className="no-skins">
-        <div className="no-skins-icon">🎮</div>
-        <h3>Скины не найдены</h3>
-        <p>Добавьте первый скин на площадку!</p>
-      </div>
-    );
-  }
-
-  // Статистика
-  const totalSkins = skins.length;
-  const statTrakCount = skins.filter(s => s.statTrak).length;
-  const totalValue = skins.reduce((sum, skin) => sum + skin.price, 0);
-  
-  // Статистика по ставкам
-  const totalBids = skins.reduce((sum, skin) => 
-    sum + (skin.bids ? skin.bids.filter(bid => bid.status === 'active').length : 0), 0
+  const renderActionButtons = (skin) => (
+    <div style={{ display: 'flex', gap: '6px', marginTop: '10px' }}>
+      <button style={{...styles.btn('var(--accent-primary)'), flex: 1}} onClick={() => dispatch(setBidModalSkin(skin))}>💎</button>
+      <button style={{...styles.btn('#444', true), flex: 1}} onClick={() => dispatch(setSelectedSkin(skin))}>👁️</button>
+      <button style={{...styles.btn('#600', true), flex: 1}} onClick={() => editSkin(skin)}>✏️</button>
+      <button style={{...styles.btn('#222', true), flex: 1}} onClick={() => deleteSkin(skin.id)}>🗑️</button>
+    </div>
   );
 
+  if (!skins || skins.length === 0) return <div style={{ textAlign: 'center', padding: '50px', color: 'var(--text-primary)' }}>Скинов не найдено</div>;
+
   return (
-    <div className="hybrid-container">
-      {/* Хедер с переключателем и статистикой */}
-      <div className="hybrid-header">
-        <div className="view-controls">
-          <button 
-            className={`view-btn ${viewMode === 'grid' ? 'active' : ''}`}
-            onClick={() => handleSetViewMode('grid')}
-          >
-            🎴 Сетка
-          </button>
-          <button 
-            className={`view-btn ${viewMode === 'table' ? 'active' : ''}`}
-            onClick={() => handleSetViewMode('table')}
-          >
-            📊 Таблица
-          </button>
-        </div>
-        
-        <div className="hybrid-stats">
-          <div className="stat-item">
-            <span className="stat-number">{totalSkins}</span>
-            <span className="stat-label">скинов</span>
-          </div>
-          <div className="stat-item">
-            <span className="stat-number">{statTrakCount}</span>
-            <span className="stat-label">StatTrak</span>
-          </div>
-          <div className="stat-item">
-            <span className="stat-number">{totalBids}</span>
-            <span className="stat-label">ставок</span>
-          </div>
-          <div className="stat-item">
-            <span className="stat-number">{convertPrice(totalValue)}</span>
-            <span className="stat-label">общая стоимость</span>
-          </div>
-        </div>
+    <div style={styles.container}>
+      
+      {/* СЕКЦИЯ КАЧЕСТВА - ТЕПЕРЬ ОНА ВСЕГДА ВИДНА ТУТ */}
+      <div style={styles.selectField}>
+        <label style={{color: 'var(--accent-primary)', fontSize: '0.8rem', fontWeight: 'bold', textTransform: 'uppercase'}}>Качество предмета:</label>
+        <select 
+          style={styles.select} 
+          value={localQuality} 
+          onChange={(e) => setLocalQuality(e.target.value)}
+        >
+          <option value="Прямо с завода">Прямо с завода</option>
+          <option value="Немного поношенное">Немного поношенное</option>
+          <option value="После полевых испытаний">После полевых испытаний</option>
+          <option value="Поношенное">Поношенное</option>
+          <option value="Закаленное в боях">Закаленное в боях</option>
+        </select>
       </div>
 
-      {/* Сетка карточек */}
-      {viewMode === 'grid' && (
-        <div className="hybrid-grid">
-          {skins.map((skin) => {
-            const activeBids = skin.bids ? skin.bids.filter(bid => bid.status === 'active') : [];
-            const userBids = activeBids.filter(bid => bid.userId === user?.id);
-            const highestBid = activeBids.length > 0 ? Math.max(...activeBids.map(bid => bid.amount)) : skin.price;
-            const isOwner = skin.ownerId === user?.id; // Проверяем владельца
-            
-            return (
-              <div key={skin.id} className="hybrid-card">
-                <div className="card-header">
-                  {skin.statTrak && <span className="stattrak-tag">ST</span>}
-                  <span className={`quality-tag ${skin.quality.replace(/\s+/g, '-').toLowerCase()}`}>
-                    {skin.quality}
-                  </span>
-                  {/* Индикатор ставок */}
-                  {activeBids.length > 0 && (
-                    <span className="bid-indicator">
-                      💎 {activeBids.length}
-                      {userBids.length > 0 && <span className="my-bid-dot">⭐</span>}
-                    </span>
-                  )}
-                  {/* Бейдж владельца */}
-                  {isOwner && (
-                    <span className="owner-badge" title="Ваш лот">👑</span>
-                  )}
-                </div>
-                
-                <div className="card-image" onClick={() => showSkinDetails(skin)}>
-                  <img 
-                    src={skin.imageUrl} 
-                    alt={skin.name}
-                    onError={(e) => {
-                      e.target.src = 'https://via.placeholder.com/300x200/1a1a2e/4ecdc4?text=CS2+Skin';
-                    }}
-                  />
-                  <div className="image-overlay">
-                    <span>👁️ Посмотреть</span>
-                  </div>
-                  {/* Бейдж моих ставок */}
-                  {userBids.length > 0 && (
-                    <div className="my-bids-badge">
-                      Ваши ставки: {userBids.length}
-                    </div>
-                  )}
-                </div>
-                
-                <div className="card-content">
-                  <h3 className="skin-name">{skin.name}</h3>
-                  <p className="skin-weapon">{skin.weapon}</p>
-                  
-                  <div className="skin-meta">
-                    <span className="float-value">Float: {skin.float}</span>
-                    <span className={`condition-badge ${skin.quality.replace(/\s+/g, '-').toLowerCase()}`}>
-                      {skin.quality}
-                    </span>
-                  </div>
-                  
-                  <div className="price-section">
-                    <span className="price">
-                      {activeBids.length > 0 ? (
-                        <>
-                          {convertPrice(highestBid)}
-                          <small className="bid-price-note"> (ставка)</small>
-                        </>
-                      ) : (
-                        convertPrice(skin.price)
-                      )}
-                    </span>
-                    {userBids.length > 0 && (
-                      <div className="user-bids-info">
-                        Ваша макс: {convertPrice(Math.max(...userBids.map(bid => bid.amount)))}
-                      </div>
-                    )}
-                  </div>
-                  
-                  <div className="card-actions">
-                    <button 
-                      className="btn-bid"
-                      onClick={() => onMakeBid(skin)}
-                      title="Сделать ставку"
-                    >
-                      💎
-                    </button>
-                    <button 
-                      className="btn-view"
-                      onClick={() => showSkinDetails(skin)}
-                      title="Посмотреть детали"
-                    >
-                      👁️
-                    </button>
-                    {/* Показываем кнопку редактирования только владельцу */}
-                    {isOwner && (
-                      <button 
-                        className="btn-edit"
-                        onClick={() => editSkin(skin)}
-                        title="Редактировать"
-                      >
-                        ✏️
-                      </button>
-                    )}
-                    {/* Кнопку удаления тоже только владельцу */}
-                    {isOwner && (
-                      <button 
-                        className="btn-delete"
-                        onClick={() => {
-                          if (window.confirm(`Удалить скин "${skin.name}"?`)) {
-                            deleteSkin(skin.id);
-                          }
-                        }}
-                        title="Удалить"
-                      >
-                        🗑️
-                      </button>
-                    )}
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
+      <div style={styles.controls}>
+        <button 
+          onClick={() => dispatch(setViewMode('grid'))} 
+          style={{...styles.btn(viewMode === 'grid' ? 'var(--accent-primary)' : '#333'), width: '100px'}}
+        >Сетка</button>
+        <button 
+          onClick={() => dispatch(setViewMode('table'))} 
+          style={{...styles.btn(viewMode === 'table' ? 'var(--accent-primary)' : '#333'), width: '100px'}}
+        >Список</button>
+      </div>
 
-      {/* Табличный вид */}
-      {viewMode === 'table' && (
-        <div className="hybrid-table-container">
-          <div className="responsive-table">
-            <table className="skins-table">
-              <thead>
-                <tr>
-                  <th>Скин</th>
-                  <th>Информация</th>
-                  <th>Характеристики</th>
-                  <th>Цена / Ставки</th>
-                  <th>Действия</th>
+      {viewMode === 'grid' ? (
+        <div style={styles.grid}>
+          {skins.map((skin) => (
+            <div key={skin.id} style={styles.card}>
+              <div style={{textAlign: 'center', background: 'rgba(0,0,0,0.2)', borderRadius: '16px', padding: '10px', height: '180px', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid var(--border-color)'}}>
+                <img src={skin.imageUrl || placeholderImage} alt={skin.name} style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
+              </div>
+              <div style={{ fontWeight: '800', color: 'var(--text-primary)', fontSize: '1rem' }}>{skin.name}</div>
+              <div style={styles.priceTag}>{convertPrice(skin.price)}</div>
+              {renderActionButtons(skin)}
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div style={{ overflowX: 'auto', background: 'var(--card-bg)', borderRadius: '24px', border: '2px solid var(--border-color)', padding: '10px' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <thead>
+              <tr style={{ borderBottom: '2px solid var(--border-color)' }}>
+                <th style={{ padding: '20px', textAlign: 'left', color: 'var(--accent-primary)' }}>Предмет</th>
+                <th style={{ padding: '20px', textAlign: 'left', color: 'var(--accent-primary)' }}>Цена</th>
+                <th style={{ padding: '20px', textAlign: 'right', color: 'var(--accent-primary)' }}>Действия</th>
+              </tr>
+            </thead>
+            <tbody>
+              {skins.map((skin) => (
+                <tr key={skin.id} style={{ borderBottom: '1px solid var(--border-color)' }}>
+                  <td style={{ padding: '15px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                      <img src={skin.imageUrl || placeholderImage} alt="" style={{ width: '70px', height: '50px', objectFit: 'contain', background: 'rgba(0,0,0,0.2)', borderRadius: '10px' }} />
+                      <span style={{ color: 'var(--text-primary)', fontWeight: '700' }}>{skin.name}</span>
+                    </div>
+                  </td>
+                  <td style={{ padding: '15px' }}><div style={styles.priceTag}>{convertPrice(skin.price)}</div></td>
+                  <td style={{ padding: '15px', textAlign: 'right' }}>{renderActionButtons(skin)}</td>
                 </tr>
-              </thead>
-              <tbody>
-                {skins.map((skin) => {
-                  const activeBids = skin.bids ? skin.bids.filter(bid => bid.status === 'active') : [];
-                  const userBids = activeBids.filter(bid => bid.userId === user?.id);
-                  const highestBid = activeBids.length > 0 ? Math.max(...activeBids.map(bid => bid.amount)) : skin.price;
-                  const isOwner = skin.ownerId === user?.id; // Проверяем владельца
-                  
-                  return (
-                    <tr key={skin.id} className="skin-row">
-                      <td>
-                        <div className="table-skin-preview">
-                          <div 
-                            className="table-image"
-                            onClick={() => showSkinDetails(skin)}
-                          >
-                            <img 
-                              src={skin.imageUrl} 
-                              alt={skin.name}
-                              onError={(e) => {
-                                e.target.src = 'https://via.placeholder.com/80x60/1a1a2e/4ecdc4?text=CS2';
-                              }}
-                            />
-                            {skin.statTrak && <div className="table-stattrak">ST</div>}
-                            {activeBids.length > 0 && (
-                              <div className="table-bid-indicator">
-                                💎 {activeBids.length}
-                              </div>
-                            )}
-                            {isOwner && <div className="owner-table-badge">👑</div>}
-                          </div>
-                        </div>
-                      </td>
-                      <td>
-                        <div className="skin-info-table">
-                          <div className="skin-name-table">
-                            <strong>{skin.name}</strong>
-                            {skin.sticker && skin.sticker !== "Нет стикеров" && (
-                              <span className="sticker-indicator" title={skin.sticker}>🎨</span>
-                            )}
-                            {userBids.length > 0 && (
-                              <span className="user-bid-indicator" title="У вас есть ставки">⭐</span>
-                            )}
-                            {isOwner && (
-                              <span className="owner-indicator" title="Ваш лот">👑</span>
-                            )}
-                          </div>
-                          <div className="weapon-table">{skin.weapon}</div>
-                        </div>
-                      </td>
-                      <td>
-                        <div className="specs-table">
-                          <div className="spec-row">
-                            <span>Качество:</span>
-                            <span className={`quality-table ${skin.quality.replace(/\s+/g, '-').toLowerCase()}`}>
-                              {skin.quality}
-                            </span>
-                          </div>
-                          <div className="spec-row">
-                            <span>Float:</span>
-                            <span className="float-table">{skin.float}</span>
-                          </div>
-                          <div className="spec-row">
-                            <span>Владелец:</span>
-                            <span className="owner-info">
-                              {isOwner ? 'Вы' : 'Другой пользователь'}
-                            </span>
-                          </div>
-                        </div>
-                      </td>
-                      <td>
-                        <div className="price-table">
-                          <span className="price-amount">
-                            {activeBids.length > 0 ? (
-                              <>
-                                {convertPrice(highestBid)}
-                                <div className="bid-info">
-                                  <small>{activeBids.length} ставок</small>
-                                  {userBids.length > 0 && (
-                                    <small className="user-bid-info">Ваша: {convertPrice(Math.max(...userBids.map(bid => bid.amount)))}</small>
-                                  )}
-                                </div>
-                              </>
-                            ) : (
-                              convertPrice(skin.price)
-                            )}
-                          </span>
-                          {skin.statTrak && (
-                            <span className="stattrak-badge-table">StatTrak™</span>
-                          )}
-                        </div>
-                      </td>
-                      <td>
-                        <div className="table-actions">
-                          <button 
-                            className="btn-bid-table"
-                            onClick={() => onMakeBid(skin)}
-                            title="Сделать ставку"
-                          >
-                            💎
-                          </button>
-                          <button 
-                            className="btn-view-table"
-                            onClick={() => showSkinDetails(skin)}
-                            title="Посмотреть детали"
-                          >
-                            👁️
-                          </button>
-                          {/* Показываем кнопку редактирования только владельцу */}
-                          {isOwner && (
-                            <button 
-                              className="btn-edit-table"
-                              onClick={() => editSkin(skin)}
-                              title="Редактировать"
-                            >
-                              ✏️
-                            </button>
-                          )}
-                          {/* Кнопку удаления тоже только владельцу */}
-                          {isOwner && (
-                            <button 
-                              className="btn-delete-table"
-                              onClick={() => {
-                                if (window.confirm(`Удалить скин "${skin.name}"?`)) {
-                                  deleteSkin(skin.id);
-                                }
-                              }}
-                              title="Удалить"
-                            >
-                              🗑️
-                            </button>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+              ))}
+            </tbody>
+          </table>
         </div>
       )}
     </div>
