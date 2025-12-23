@@ -19,7 +19,7 @@ const SkinDetailsModal = ({ skin, open, onClose, isDark }) => {
         outline: 'none',
         position: 'relative'
       }}>
-        {/* Кнопка закрытия в углу */}
+        
         <button 
           onClick={onClose} 
           style={{ position: 'absolute', right: '20px', top: '20px', background: 'none', border: 'none', color: 'inherit', cursor: 'pointer' }}
@@ -49,7 +49,7 @@ const SkinDetailsModal = ({ skin, open, onClose, isDark }) => {
           </div>
         </div>
 
-        {/* ЭТА КНОПКА ТЕПЕРЬ ТОЧНО БОРДОВАЯ */}
+        
         <button 
           onClick={onClose}
           style={{

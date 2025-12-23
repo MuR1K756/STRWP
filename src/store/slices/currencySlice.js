@@ -3,17 +3,13 @@ import { createSlice } from '@reduxjs/toolkit';
 const currencySlice = createSlice({
   name: 'currency',
   initialState: {
-    currency: localStorage.getItem('currency') || 'RUB',
-    exchangeRates: {
-      USD: 0.011,
-      BYN: 0.036,
-      RUB: 1
-    }
+    currency: localStorage.getItem('selected_currency') || 'RUB',
+    exchangeRates: { USD: 0.011, BYN: 0.036, RUB: 1 }
   },
   reducers: {
     setCurrency: (state, action) => {
       state.currency = action.payload;
-      localStorage.setItem('currency', action.payload);
+      localStorage.setItem('selected_currency', action.payload);
     },
     updateExchangeRates: (state, action) => {
       state.exchangeRates = { ...state.exchangeRates, ...action.payload };
@@ -23,15 +19,18 @@ const currencySlice = createSlice({
 
 export const { setCurrency, updateExchangeRates } = currencySlice.actions;
 
-// Селекторы с защитой от undefined
-export const selectCurrency = (state) => state.currency?.currency || 'RUB';
-export const selectExchangeRates = (state) => state.currency?.exchangeRates || { RUB: 1 };
+export const selectCurrency = (state) => state.currency.currency;
+export const selectExchangeRates = (state) => state.currency.exchangeRates;
 
+// Возвращаем селектор-функцию, которую ждут твои компоненты
 export const selectConvertedPrice = (state) => {
-  const currency = state.currency?.currency || 'RUB';
-  const rates = state.currency?.exchangeRates || { RUB: 1, USD: 0.011, BYN: 0.036 };
-
-  return (priceInRub) => {
+  // Возвращаем функцию-конвертер
+  return (priceInput) => {
+    if (!state.currency) return `${priceInput} ₽`; // Защита если стейт не готов
+    
+    const currency = state.currency.currency;
+    const rates = state.currency.exchangeRates || { USD: 0.011, BYN: 0.036, RUB: 1 };
+    const priceInRub = Number(priceInput) || 0;
     const rate = rates[currency] || 1;
     const converted = priceInRub * rate;
 

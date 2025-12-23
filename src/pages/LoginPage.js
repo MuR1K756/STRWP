@@ -11,7 +11,7 @@ const LoginPage = () => {
 
   const handleLogin = (e) => {
     e.preventDefault();
-    // Простая валидация
+    
     if (formData.username.length < 3) {
       setError('Имя пользователя должно быть не короче 3 символов');
       return;
@@ -21,8 +21,7 @@ const LoginPage = () => {
       return;
     }
 
-    // Имитация входа (в реальном проекте тут будет dispatch(login(formData)))
-    // Для теста просто перенаправляем в профиль
+    
     navigate('/profile');
   };
 
@@ -47,7 +46,7 @@ const LoginPage = () => {
             helperText={error}
             error={!!error}
           />
-          <Button fullWidth variant="contained" type="submit" sx={{ mt: 3, bgcolor: '#4ecdc4' }}>
+          <Button fullWidth variant="contained" type="submit" sx={{ mt: 3, bgcolor: 'var(--accent-primary)' }}>
             Войти
           </Button>
         </form>

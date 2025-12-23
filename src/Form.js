@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { SKINS_DATABASE } from './skinsData';
 import { useAppSelector, useAppDispatch } from './hooks/redux';
 import { selectCurrency, selectExchangeRates, setCurrency } from './store/slices/currencySlice';
@@ -6,29 +6,53 @@ import { selectTheme } from './store/slices/uiSlice';
 
 const Form = ({ handleSubmit, inSkin, isEditing, user }) => {
     const dispatch = useAppDispatch();
-    
     const themeMode = useAppSelector(selectTheme);
     const isDark = themeMode === 'dark';
     
-    // 1. ДОБАВЛЕНО: Поле quality в начальный стейт
-    const [skin, setSkin] = useState(() => ({
-        weapon: inSkin?.weapon || '',
-        name: inSkin?.name || '',
-        imageUrl: inSkin?.imageUrl || '',
-        price: inSkin?.price || 0,
-        float: inSkin?.float || '',
-        quality: inSkin?.quality || 'Прямо с завода', // Значение по умолчанию
-        description: inSkin?.description || '',
-        ownerId: inSkin?.ownerId || user?.id
-    }));
+    // Начальное состояние
+    const [skin, setSkin] = useState({
+        weapon: '',
+        name: '',
+        imageUrl: '',
+        price: 0,
+        float: '',
+        quality: 'Прямо с завода',
+        description: '',
+        ownerId: user?.id || null
+    });
 
-    const [imagePreview, setImagePreview] = useState(inSkin?.imageUrl || null);
+    const [imagePreview, setImagePreview] = useState(null);
     const [isCustomName, setIsCustomName] = useState(false);
-    
+
+    // ЭФФЕКТ ДЛЯ РЕДАКТИРОВАНИЯ
+    useEffect(() => {
+        if (isEditing && inSkin) {
+            setSkin({
+                ...inSkin,
+                ownerId: inSkin.ownerId || user?.id
+            });
+            setImagePreview(inSkin.imageUrl);
+        } else if (!isEditing) {
+            setSkin({
+                weapon: '',
+                name: '',
+                imageUrl: '',
+                price: 0,
+                float: '',
+                quality: 'Прямо с завода',
+                description: '',
+                ownerId: user?.id || null
+            });
+            setImagePreview(null);
+        }
+    }, [isEditing, inSkin, user]);
+
     const currentCurrency = useAppSelector(selectCurrency);
     const exchangeRates = useAppSelector(selectExchangeRates);
     const rate = exchangeRates[currentCurrency] || 1;
-    const displayValue = skin.price ? Math.round(skin.price * rate) : '';
+    
+    // Безопасное вычисление отображаемой цены
+    const displayValue = skin.price ? Math.round(Number(skin.price) * rate) : '';
 
     const handleWeaponChange = (e) => {
         const weapon = e.target.value;
@@ -60,7 +84,8 @@ const Form = ({ handleSubmit, inSkin, isEditing, user }) => {
         setSkin(prev => ({ ...prev, float: val }));
     };
 
-    const isFormValid = skin.weapon && skin.name && skin.imageUrl && skin.price > 0;
+    // Валидация: проверяем еще и наличие ownerId
+    const isFormValid = skin.weapon && skin.name && skin.imageUrl && skin.price > 0 && user?.id;
 
     const styles = {
         panel: {
@@ -99,81 +124,81 @@ const Form = ({ handleSubmit, inSkin, isEditing, user }) => {
 
     return (
         <div style={styles.panel}>
-            <form onSubmit={(e) => { e.preventDefault(); if(isFormValid) handleSubmit(skin); }}>
+            <form onSubmit={(e) => { e.preventDefault(); if(isFormValid) handleSubmit({...skin, ownerId: user.id}); }}>
                 
                 <p style={styles.sectionTitle}>1. Оружие</p>
                 <select style={styles.input} value={skin.weapon} onChange={handleWeaponChange} required>
                     <option value="" style={styles.option}>Выберите пушку</option>
                     <optgroup label="Пистолеты" style={styles.option}>
-                            <option value="Glock-18">Glock-18</option>
-                            <option value="USP-S">USP-S</option>
-                            <option value="P250">P250</option>
-                            <option value="Desert Eagle">Desert Eagle</option>
-                            <option value="Dual Berettas">Dual Berettas</option>
-                            <option value="Five-SeveN">Five-SeveN</option>
-                            <option value="Tec-9">Tec-9</option>
-                            <option value="CZ75-Auto">CZ75-Auto</option>
-                            <option value="R8 Revolver">R8 Revolver</option>
-                        </optgroup>
+                        <option value="Glock-18">Glock-18</option>
+                        <option value="USP-S">USP-S</option>
+                        <option value="P250">P250</option>
+                        <option value="Desert Eagle">Desert Eagle</option>
+                        <option value="Dual Berettas">Dual Berettas</option>
+                        <option value="Five-SeveN">Five-SeveN</option>
+                        <option value="Tec-9">Tec-9</option>
+                        <option value="CZ75-Auto">CZ75-Auto</option>
+                        <option value="R8 Revolver">R8 Revolver</option>
+                    </optgroup>
 
-                        <optgroup label="Винтовки" style={styles.option}>
-                            <option value="AK-47">AK-47</option>
-                            <option value="M4A4">M4A4</option>
-                            <option value="M4A1-S">M4A1-S</option>
-                            <option value="Galil AR">Galil AR</option>
-                            <option value="FAMAS">FAMAS</option>
-                            <option value="AUG">AUG</option>
-                            <option value="SG 553">SG 553</option>
-                        </optgroup>
+                    <optgroup label="Винтовки" style={styles.option}>
+                        <option value="AK-47">AK-47</option>
+                        <option value="M4A4">M4A4</option>
+                        <option value="M4A1-S">M4A1-S</option>
+                        <option value="Galil AR">Galil AR</option>
+                        <option value="FAMAS">FAMAS</option>
+                        <option value="AUG">AUG</option>
+                        <option value="SG 553">SG 553</option>
+                    </optgroup>
 
-                        <optgroup label="Снайперские" style={styles.option}>
-                            <option value="AWP">AWP</option>
-                            <option value="SSG 08">SSG 08</option>
-                            <option value="SCAR-20">SCAR-20</option>
-                            <option value="G3SG1">G3SG1</option>
-                        </optgroup>
+                    <optgroup label="Снайперские" style={styles.option}>
+                        <option value="AWP">AWP</option>
+                        <option value="SSG 08">SSG 08</option>
+                        <option value="SCAR-20">SCAR-20</option>
+                        <option value="G3SG1">G3SG1</option>
+                    </optgroup>
 
-                        <optgroup label="ПП (SMGs)" style={styles.option}>
-                            <option value="MAC-10">MAC-10</option>
-                            <option value="MP9">MP9</option>
-                            <option value="MP7">MP7</option>
-                            <option value="MP5-SD">MP5-SD</option>
-                            <option value="UMP-45">UMP-45</option>
-                            <option value="P90">P90</option>
-                            <option value="PP-Bizon">PP-Bizon</option>
-                        </optgroup>
+                    <optgroup label="ПП (SMGs)" style={styles.option}>
+                        <option value="MAC-10">MAC-10</option>
+                        <option value="MP9">MP9</option>
+                        <option value="MP7">MP7</option>
+                        <option value="MP5-SD">MP5-SD</option>
+                        <option value="UMP-45">UMP-45</option>
+                        <option value="P90">P90</option>
+                        <option value="PP-Bizon">PP-Bizon</option>
+                    </optgroup>
 
-                        <optgroup label="Тяжелое" style={styles.option}>
-                            <option value="Nova">Nova</option>
-                            <option value="XM1014">XM1014</option>
-                            <option value="MAG-7">MAG-7</option>
-                            <option value="Sawed-Off">Sawed-Off</option>
-                            <option value="M249">M249</option>
-                            <option value="Negev">Negev</option>
-                        </optgroup>
+                    <optgroup label="Тяжелое" style={styles.option}>
+                        <option value="Nova">Nova</option>
+                        <option value="XM1014">XM1014</option>
+                        <option value="MAG-7">MAG-7</option>
+                        <option value="Sawed-Off">Sawed-Off</option>
+                        <option value="M249">M249</option>
+                        <option value="Negev">Negev</option>
+                    </optgroup>
 
-                        <optgroup label="Ножи" style={styles.option}>
-                            <option value="Karambit">Karambit</option>
-                            <option value="Butterfly Knife">Butterfly Knife</option>
-                            <option value="Bayonet">Bayonet</option>
-                            <option value="M9 Bayonet">M9 Bayonet</option>
-                            <option value="Ursus Knife">Ursus Knife</option>
-                            <option value="Skeleton Knife">Skeleton Knife</option>
-                            <option value="Talon Knife">Talon Knife</option>
-                            <option value="Stiletto Knife">Stiletto Knife</option>
-                            <option value="Gut Knife">Gut Knife</option>
-                            <option value="Shadow Daggers">Shadow Daggers</option>
-                            <option value="Bowie Knife">Bowie Knife</option>
-                            <option value="Navaja Knife">Navaja Knife</option>
-                            <option value="Paracord Knife">Paracord Knife</option>
-                            <option value="Huntsman Knife">Huntsman Knife</option>
-                            <option value="Falchion Knife">Falchion Knife</option>
-                            <option value="Survival Knife">Survival Knife</option>
-                            <option value="Nomad Knife">Nomad Knife</option>
-                            <option value="Flip Knife">Flip Knife</option>
-                            <option value="Kukri Knife">Kukri Knife</option>
-                            <option value="Classic Knife">Classic Knife</option>
-                            </optgroup>
+                    <optgroup label="Ножи" style={styles.option}>
+                        <option value="Karambit">Karambit</option>
+                        <option value="Butterfly Knife">Butterfly Knife</option>
+                        <option value="Bayonet">Bayonet</option>
+                        <option value="M9 Bayonet">M9 Bayonet</option>
+                        <option value="Ursus Knife">Ursus Knife</option>
+                        <option value="Skeleton Knife">Skeleton Knife</option>
+                        <option value="Talon Knife">Talon Knife</option>
+                        <option value="Stiletto Knife">Stiletto Knife</option>
+                        <option value="Gut Knife">Gut Knife</option>
+                        <option value="Shadow Daggers">Shadow Daggers</option>
+                        <option value="Bowie Knife">Bowie Knife</option>
+                        <option value="Navaja Knife">Navaja Knife</option>
+                        <option value="Paracord Knife">Paracord Knife</option>
+                        <option value="Huntsman Knife">Huntsman Knife</option>
+                        <option value="Falchion Knife">Falchion Knife</option>
+                        <option value="Survival Knife">Survival Knife</option>
+                        <option value="Nomad Knife">Nomad Knife</option>
+                        <option value="Flip Knife">Flip Knife</option>
+                        <option value="Kukri Knife">Kukri Knife</option>
+                        <option value="Classic Knife">Classic Knife</option>
+                    </optgroup>
                 </select>
 
                 <p style={styles.sectionTitle}>2. Скин</p>
@@ -191,10 +216,9 @@ const Form = ({ handleSubmit, inSkin, isEditing, user }) => {
                         <option value="CUSTOM" style={styles.option}>+ Свой вариант</option>
                     </select>
                 ) : (
-                    <input style={styles.input} type="text" value={skin.name} onChange={(e) => setSkin({...skin, name: e.target.value})} placeholder="AK-47 | Название" required />
+                    <input style={styles.input} type="text" value={skin.name} onChange={(e) => setSkin({...skin, name: e.target.value})} placeholder="Название предмета" required />
                 )}
 
-                {/* 2. ДОБАВЛЕНО: Новое поле выбора Качества */}
                 <p style={styles.sectionTitle}>3. Качество предмета</p>
                 <select 
                     style={styles.input} 
@@ -228,15 +252,28 @@ const Form = ({ handleSubmit, inSkin, isEditing, user }) => {
 
                 <div style={{ display: 'flex', gap: '15px' }}>
                     <div style={{ flex: 2 }}>
-                        <input style={styles.input} type="text" value={displayValue} onChange={(e) => setSkin({...skin, price: Math.round((parseInt(e.target.value.replace(/\D/g,'')) || 0) / rate)})} placeholder="Цена" required />
+                        <input 
+                            style={styles.input} 
+                            type="text" 
+                            value={displayValue} 
+                            onChange={(e) => {
+                                const rawValue = e.target.value.replace(/\D/g,'');
+                                const basePrice = Math.round((Number(rawValue) || 0) / rate);
+                                setSkin({...skin, price: basePrice});
+                            }} 
+                            placeholder="Цена" 
+                            required 
+                        />
                     </div>
                     <div style={{ flex: 1.5 }}>
                         <input style={styles.input} type="text" value={skin.float} onChange={handleFloatChange} placeholder="Float" />
                     </div>
                 </div>
 
+                {!user?.id && <p style={{color: '#ff4444', fontSize: '0.8rem', marginBottom: '10px', textAlign: 'center'}}>Нужна авторизация для продажи</p>}
+
                 <button type="submit" disabled={!isFormValid} style={{ width: '100%', padding: '18px', background: 'var(--accent-primary)', color: '#fff', border: 'none', borderRadius: '12px', fontWeight: 'bold', cursor: isFormValid ? 'pointer' : 'not-allowed' }}>
-                    {isEditing ? 'ОБНОВИТЬ' : 'ВЫСТАВИТЬ'}
+                    {isEditing ? 'ОБНОВИТЬ СКИН' : 'ВЫСТАВИТЬ НА ПРОДАЖУ'}
                 </button>
             </form>
         </div>

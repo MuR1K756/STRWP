@@ -23,13 +23,14 @@ const Layout = () => {
 
   const styles = {
     nav: {
-      backgroundColor: isDark ? '#1a1a2e' : '#ffffff',
-      padding: '1rem 0',
-      boxShadow: isDark ? '0 2px 10px rgba(0,0,0,0.3)' : '0 2px 10px rgba(0,0,0,0.1)',
-      position: 'sticky',
-      top: 0,
-      zIndex: 100,
-    },
+  backgroundColor: isDark ? '#0a0a0a' : '#ffffff', 
+  padding: '1rem 0',
+  boxShadow: isDark ? '0 4px 20px rgba(0,0,0,0.6)' : '0 2px 10px rgba(0,0,0,0.1)',
+  position: 'sticky',
+  top: 0,
+  zIndex: 100,
+  borderBottom: isDark ? '1px solid #1a0505' : 'none' 
+},
     navContainer: {
       maxWidth: '1400px',
       margin: '0 auto',
@@ -37,10 +38,10 @@ const Layout = () => {
       display: 'flex',
       justifyContent: 'space-between',
       alignItems: 'center',
-      gap: '2rem', // Увеличил отступ между лого и навигацией
+      gap: '2rem', 
     },
     navLogo: {
-      color: isDark ? '#4ecdc4' : '#800020',
+      color: isDark ? 'var(--accent-primary)' : '#800020', 
       fontSize: '1.5rem',
       fontWeight: 'bold',
       textDecoration: 'none',
@@ -48,10 +49,10 @@ const Layout = () => {
     },
     navCategories: {
       display: 'flex',
-      flexDirection: 'row', // ГАРАНТИРУЕМ ГОРИЗОНТАЛЬ
+      flexDirection: 'row', 
       alignItems: 'center',
       gap: '1rem',
-      flexGrow: 1, // Занимает всё свободное место
+      flexGrow: 1, 
     },
     navCategory: {
       color: isDark ? '#ffffff' : '#333333',
@@ -89,7 +90,7 @@ const Layout = () => {
     },
     themeButton: {
       background: 'none',
-      border: `1px solid ${isDark ? '#4ecdc4' : '#800020'}`,
+      border: `1px solid ${isDark ? 'var(--accent-primary)' : '#800020'}`, 
       cursor: 'pointer',
       borderRadius: '50%',
       width: '40px',
@@ -107,12 +108,14 @@ const Layout = () => {
         <div style={styles.navContainer}>
           <Link to="/" style={styles.navLogo}>🎯 MARKET</Link>
           
-          {/* ИСПРАВЛЕННЫЙ БЛОК КАТЕГОРИЙ */}
+         
           <div style={styles.navCategories}>
             <Link to="/" style={styles.navCategory}>🏠 Главная</Link>
             <Link to="/knives" style={styles.navCategory}>🔪 Ножи</Link>
             <Link to="/pistols" style={styles.navCategory}>🎯 Пистолеты</Link>
             <Link to="/rifles" style={styles.navCategory}>🔫 Винтовки</Link>
+            <Link to="/smgs" style={styles.navCategory}>⚡ ПП</Link>
+            <Link to="/heavy" style={styles.navCategory}>💣 Тяжелое</Link>
             <Link to="/profile" style={styles.navCategory}>👤 Профиль</Link>
           </div>
           
@@ -129,7 +132,9 @@ const Layout = () => {
 
             {isAuthenticated ? (
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <span style={{ color: isDark ? '#4ecdc4' : '#333', fontWeight: '500' }}>{user?.username}</span>
+               <span style={{ color: isDark ? 'var(--accent-primary)' : '#333', fontWeight: '500' }}>
+  {user?.username}
+</span>
                 <button style={styles.authButton} onClick={handleLogout}>Выйти</button>
               </div>
             ) : (
@@ -150,7 +155,7 @@ const Layout = () => {
       <footer style={{ 
         textAlign: 'center', 
         padding: '2rem', 
-        background: isDark ? '#16213e' : '#800020', 
+        background: isDark ? '#050505' : '#800020', 
         color: '#fff',
         marginTop: 'auto' 
       }}>

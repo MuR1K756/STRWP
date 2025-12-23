@@ -1,152 +1,143 @@
 import React, { useState } from 'react';
 import { useAppSelector, useAppDispatch } from '../hooks/redux';
 import { selectUser } from '../store/slices/authSlice';
-import { selectCurrency, selectExchangeRates, selectConvertedPrice } from '../store/slices/currencySlice';
+import { selectCurrency, selectConvertedPrice } from '../store/slices/currencySlice';
 
 const BidModal = ({ skin, onClose, onMakeBid, onCancelBid }) => {
-  const user = useAppSelector(selectUser);
-  const currency = useAppSelector(selectCurrency);
-  const exchangeRates = useAppSelector(selectExchangeRates);
-  
-  // ИСПРАВЛЕНО: Получаем функцию конвертации правильно
-  const convertPrice = useAppSelector(selectConvertedPrice);
-  
-  const [bidAmount, setBidAmount] = useState(skin.price + 1);
-  const [selectedBidToCancel, setSelectedBidToCancel] = useState(null);
-
-  const userBids = skin.bids?.filter(bid => bid.userId === user?.id && bid.status === 'active') || [];
-  const allBids = skin.bids?.filter(bid => bid.status === 'active') || [];
-  
-  const highestBidAmount = allBids.length > 0 
-    ? Math.max(...allBids.map(bid => bid.amount)) 
-    : skin.price;
-
-  const handleSubmitBid = (e) => {
-    e.preventDefault();
-    if (!user) {
-      alert('❌ Необходимо войти в систему!');
-      return;
-    }
+    const user = useAppSelector(selectUser);
+    const currency = useAppSelector(selectCurrency);
+    const convertPrice = useAppSelector(selectConvertedPrice);
     
-    if (bidAmount > user.balance) {
-      alert('❌ Недостаточно средств на балансе!');
-      return;
-    }
-    if (bidAmount <= highestBidAmount) {
-      alert(`❌ Ставка должна быть выше текущей максимальной (${convertPrice(highestBidAmount)})`);
-      return;
-    }
-    onMakeBid(skin.id, bidAmount);
-    setBidAmount(highestBidAmount + 10);
-  };
+    const [bidAmount, setBidAmount] = useState(Number(skin.price) + 10);
 
-  const handleCancelBid = (bidId) => {
-    if (onCancelBid) {
-        onCancelBid(skin.id, bidId);
-    }
-    setSelectedBidToCancel(null);
-  };
+    const allBids = skin.bids?.filter(bid => bid.status === 'active') || [];
+    //Вычисление максимальной ставки
+    const highestBidAmount = allBids.length > 0 
+        ? Math.max(...allBids.map(bid => bid.amount)) 
+        : skin.price;
 
-  if (!user) {
+    const styles = {
+        wrapper: {
+            padding: '40px',
+            backgroundColor: '#0a0a0a',
+            borderRadius: '24px',
+            color: '#fff',
+            width: '100%',
+            maxWidth: '600px', 
+            border: '2px solid #1a0505',
+            boxShadow: '0 0 40px rgba(0,0,0,0.8)'
+        },
+        header: {
+            borderBottom: '1px solid #1a0505',
+            paddingBottom: '20px',
+            marginBottom: '20px',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center'
+        },
+        priceBlock: {
+            background: 'linear-gradient(135deg, #110202 0%, #050505 100%)',
+            padding: '20px',
+            borderRadius: '16px',
+            border: '1px solid #b01b2e33',
+            marginBottom: '25px',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center'
+        },
+        input: {
+            width: '100%',
+            backgroundColor: '#050505',
+            border: '2px solid #1a0505',
+            borderRadius: '12px',
+            padding: '15px',
+            color: '#fff',
+            fontSize: '1.2rem',
+            textAlign: 'center',
+            marginBottom: '20px',
+            outline: 'none',
+            transition: 'border-color 0.2s',
+        },
+        submitBtn: {
+            width: '100%',
+            padding: '18px',
+            borderRadius: '14px',
+            border: 'none',
+            backgroundColor: '#b01b2e',
+            color: '#fff',
+            fontWeight: '800',
+            fontSize: '1.1rem',
+            cursor: 'pointer',
+            transition: '0.3s',
+            boxShadow: '0 4px 15px rgba(176, 27, 46, 0.3)'
+        },
+        bidItem: {
+            display: 'flex',
+            justifyContent: 'space-between',
+            padding: '12px 15px',
+            borderRadius: '10px',
+            backgroundColor: 'rgba(255,255,255,0.03)',
+            marginBottom: '8px',
+            borderLeft: '3px solid #b01b2e'
+        }
+    };
+
     return (
-      <div className="bid-modal">
-        <div className="bid-header">
-          <h2>🔒 Требуется авторизация</h2>
-          <button className="close-bid" onClick={onClose}>×</button>
+        <div style={styles.wrapper}>
+            <div style={styles.header}>
+                <h2 style={{ margin: 0, fontSize: '1.8rem' }}>💎 Сделать ставку</h2>
+                <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#444', fontSize: '2rem', cursor: 'pointer' }}>&times;</button>
+            </div>
+
+            <p style={{ color: '#aaa', marginBottom: '20px' }}>Предмет: <span style={{ color: '#fff', fontWeight: 'bold' }}>{skin.name}</span></p>
+
+            <div style={styles.priceBlock}>
+                <div>
+                    <div style={{ fontSize: '0.8rem', color: '#666', textTransform: 'uppercase' }}>Текущая цена</div>
+                    <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#b01b2e' }}>{convertPrice(highestBidAmount)}</div>
+                </div>
+                <div style={{ textAlign: 'right' }}>
+                    <div style={{ fontSize: '0.8rem', color: '#666', textTransform: 'uppercase' }}>Ваш баланс</div>
+                    <div style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>{convertPrice(user?.balance || 0)}</div>
+                </div>
+            </div>
+
+            <div style={{ marginBottom: '20px' }}>
+                <label style={{ display: 'block', marginBottom: '10px', color: '#888', fontSize: '0.9rem' }}>Ваша сумма:</label>
+                <input 
+                    type="number" 
+                    value={bidAmount} 
+                    onChange={(e) => setBidAmount(Number(e.target.value))}
+                    style={styles.input}
+                    onFocus={(e) => e.target.style.borderColor = '#b01b2e'}
+                    onBlur={(e) => e.target.style.borderColor = '#1a0505'}
+                />
+            </div>
+
+            <button 
+                style={styles.submitBtn}
+                onClick={() => onMakeBid(skin.id, bidAmount)}
+                onMouseOver={(e) => e.target.style.backgroundColor = '#d01f36'}
+                onMouseOut={(e) => e.target.style.backgroundColor = '#b01b2e'}
+            >
+                ПОДТВЕРДИТЬ СТАВКУ
+            </button>
+
+            {allBids.length > 0 && (
+                <div style={{ marginTop: '30px' }}>
+                    <h4 style={{ marginBottom: '15px', color: '#666' }}>История торгов</h4>
+                    <div style={{ maxHeight: '150px', overflowY: 'auto', paddingRight: '10px' }}>
+                        {allBids.map(bid => (
+                            <div key={bid.id} style={styles.bidItem}>
+                                <span>{bid.userName}</span>
+                                <span style={{ fontWeight: 'bold' }}>{convertPrice(bid.amount)}</span>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
         </div>
-        <div className="bid-content">
-          <p>Для участия в ставках необходимо войти в систему.</p>
-          <button className="auth-submit-btn" onClick={onClose}>Понятно</button>
-        </div>
-      </div>
     );
-  }
-
-  return (
-    <div className="bid-modal">
-      <div className="bid-header">
-        <h2>💎 Ставки на {skin.name}</h2>
-        <button className="close-bid" onClick={onClose}>×</button>
-      </div>
-
-      <div className="bid-content">
-        <div className="balance-info">
-          <span>Ваш баланс: </span>
-          <strong className="user-balance">{convertPrice(user.balance)}</strong>
-        </div>
-
-        <div className="bids-section">
-          <h3>📊 Текущие ставки</h3>
-          {allBids.length === 0 ? (
-            <p className="no-bids">Ставок пока нет. Будьте первым!</p>
-          ) : (
-            <div className="bids-list">
-              {allBids.map(bid => (
-                <div key={bid.id} className={`bid-item ${bid.userId === user.id ? 'my-bid' : ''}`}>
-                  <span className="bid-user">{bid.userName || 'Аноним'}</span>
-                  <span className="bid-amount">{convertPrice(bid.amount)}</span>
-                  {bid.userId === user.id && (
-                    <button className="cancel-bid-btn" onClick={() => setSelectedBidToCancel(bid.id)}>❌</button>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {userBids.length > 0 && (
-          <div className="my-bids-section">
-            <h3>🎯 Ваши ставки</h3>
-            <div className="my-bids-list">
-              {userBids.map(bid => (
-                <div key={bid.id} className="my-bid-item">
-                  <span>Ваша ставка: {convertPrice(bid.amount)}</span>
-                  <button className="cancel-my-bid" onClick={() => setSelectedBidToCancel(bid.id)}>Отменить</button>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        <form onSubmit={handleSubmitBid} className="bid-form">
-          <h3>💸 Сделать ставку</h3>
-          <div className="form-group">
-            <label>Сумма ставки ({currency}):</label>
-            <input
-              type="number"
-              value={bidAmount}
-              onChange={(e) => setBidAmount(Number(e.target.value))}
-              min={highestBidAmount + 1}
-              required
-            />
-            <div className="bid-hints">
-              <span>Мин: {convertPrice(highestBidAmount + 1)}</span>
-            </div>
-          </div>
-          
-          <button 
-            type="submit" 
-            className="submit-bid-btn"
-            disabled={bidAmount > user.balance || bidAmount <= highestBidAmount}
-          >
-            💎 Сделать ставку {convertPrice(bidAmount)}
-          </button>
-        </form>
-      </div>
-
-      {selectedBidToCancel && (
-        <div className="cancel-confirmation">
-          <div className="confirmation-modal">
-            <h4>Отменить ставку?</h4>
-            <div className="confirmation-buttons">
-              <button className="confirm-cancel" onClick={() => handleCancelBid(selectedBidToCancel)}>✅ Да</button>
-              <button className="cancel-cancel" onClick={() => setSelectedBidToCancel(null)}>❌ Нет</button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
 };
 
 export default BidModal;

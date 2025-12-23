@@ -1,590 +1,259 @@
 /* ==========================================================================
-   ФИНАЛЬНЫЙ МОНОЛИТНЫЙ APP.CSS (POLISHED VERSION)
+   ФИНАЛЬНЫЙ МОНОЛИТНЫЙ APP.CSS (BATTLE-SCARRED CRIMSON EDITION)
    ========================================================================== */
 
-/* Светлая тема — теперь ОФИЦИАЛЬНО СЕРАЯ */
 :root, [data-theme="light"] {
-    --bg-primary: #cbd5e0;       /* Заметный серый фон страницы */
-    --bg-secondary: #f7fafc;     /* Почти белый для самой формы (контраст) */
+    --bg-primary: #cbd5e0;
+    --bg-secondary: #f7fafc;
     --text-primary: #2d3748;
     --text-secondary: #718096;
-    --border-color: #a0aec0;     /* Темные границы, чтобы не сливались */
+    --border-color: #a0aec0;
     --accent-primary: #8e44ad;
-    --input-bg: #edf2f7;         /* Инпуты еще темнее */
+    --accent-secondary: #732d91;
+    --input-bg: #edf2f7;
     --shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
 }
 
 [data-theme="dark"] {
-    --bg-primary: #050505;          /* Совсем черный фон страницы */
-    --card-bg: #110202;             /* Тот самый бордовый фон как у формы */
-    --bg-secondary: #110202;        /* Для панелей */
+    --bg-primary: #050505;          /* Глубокий черный фон */
+    --bg-secondary: #110202;        /* Темно-бордовый фон панелей */
+    --card-bg: #110202;             /* Фон карточек */
     --border-color: #3d0c0c;        /* Бордовая граница */
-    --accent-primary: #b01b2e;      /* Красный акцент (кнопки) */
+    --accent-primary: #b01b2e;      /* Основной красный/бордовый */
+    --accent-secondary: #7a121f;    /* Темно-красный для ховера */
     --text-primary: #ffffff;
     --text-secondary: #b3a2a2;
+    --header-bg: #0a0101;           /* Цвет шапки */
 }
 
-/* ==========================================================================
-   1. ГЛОБАЛЬНЫЕ ЭФФЕКТЫ
-   ========================================================================== */
+/* 1. ГЛОБАЛЬНЫЕ ПРАВКИ */
 * { 
     margin: 0; 
     padding: 0; 
     box-sizing: border-box; 
-    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); 
+    transition: background-color 0.25s ease, border-color 0.25s ease; 
 }
 
 body {
     background-color: var(--bg-primary) !important;
-    transition: background-color 0.3s ease;
+    color: var(--text-primary);
+    font-family: 'Inter', sans-serif;
 }
 
-/* Анимация появления контента */
-.main-content {
-    animation: fadeIn 0.6s ease-out;
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-/* ==========================================================================
-   2. ШАПКА И ПЕРЕКЛЮЧАТЕЛЬ ТЕМЫ
-   ========================================================================== */
+/* 2. ШАПКА (ВЫЖИГАЕМ СИНЕВУ) */
 .main-nav {
-    background: var(--header-bg);
+    background: var(--header-bg) !important;
+    border-bottom: 2px solid var(--border-color);
     padding: 15px 0;
     position: sticky;
     top: 0;
-    z-index: 100;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-}
-
-.nav-container {
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: 0 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+    z-index: 1000;
 }
 
 .nav-logo {
+    color: var(--accent-primary) !important;
     font-size: 1.8rem;
     font-weight: 900;
-    letter-spacing: -1px;
-    color: white !important;
-    text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    text-shadow: 0 0 15px rgba(176, 27, 46, 0.3);
 }
 
-/* Кнопка переключения темы */
-.theme-toggle {
-    background: rgba(255, 255, 255, 0.2);
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    color: white;
-    padding: 8px 15px;
-    border-radius: 20px;
-    cursor: pointer;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    gap: 8px;
+.link, .nav-link {
+    color: var(--text-primary) !important;
+    text-decoration: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    transition: 0.3s;
 }
 
-.theme-toggle:hover {
-    background: rgba(255, 255, 255, 0.3);
-    transform: scale(1.05);
+.link:hover {
+    background: rgba(176, 27, 46, 0.1);
+    color: var(--accent-primary) !important;
 }
 
-/* ==========================================================================
-   3. ГЛАВНЫЙ МАКЕТ
-   ========================================================================== */
-.main-content {
-    display: flex;
-    flex-direction: row;
-    gap: 30px;
-    max-width: 1400px;
-    margin: 30px auto;
-    padding: 0 20px;
-    align-items: flex-start;
-}
-
-/* ФОРМА (ЛЕВАЯ КАНЕЛЬ) */
-.form-panel {
-    flex: 0 0 350px;
-    background: var(--card-bg);
-    border: 1px solid var(--border-color);
-    padding: 25px;
-    border-radius: 20px;
-    box-shadow: var(--shadow);
-    position: sticky;
-    top: 100px;
-}
-
-.form-group label {
-    font-size: 0.85rem;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-bottom: 8px;
-    display: block;
-    opacity: 0.8;
-}
-
-/* Специальный эффект для инпутов, чтобы они не пропадали на белом */
-.form-group input, .form-group select {
-    background: var(--card-bg); /* Всегда белый на сером фоне */
-    border: 1px solid var(--border-color);
-    box-shadow: inset 0 1px 2px rgba(0,0,0,0.02);
-}
-
-.form-group input:focus {
-    background: #fff;
-    border-color: var(--accent-primary);
-    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
-}
-
-/* ==========================================================================
-   4. КАРТОЧКИ СКИНОВ
-   ========================================================================== */
-.skins-grid {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 20px;
-    flex: 1;
-}
-
-/* Улучшение внешнего вида карточек в светлой теме */
-.hybrid-card {
-    background: var(--card-bg);
-    border: 1px solid var(--border-color);
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-}
-
-.hybrid-card:hover {
-    transform: translateY(-8px);
-    box-shadow: var(--shadow);
-    border-color: var(--accent-primary);
+/* 3. КАРТОЧКИ И ГРИДЫ */
+.hybrid-card, .skin-card, .MuiPaper-root {
+    background-color: var(--card-bg) !important;
+    border: 1px solid var(--border-color) !important;
+    background-image: none !important;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.5) !important;
 }
 
 .card-image {
-    background: radial-gradient(circle, #222 0%, #000 100%);
-    height: 180px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    position: relative;
-    padding: 20px;
-}
-
-.card-image img {
-    max-width: 100%;
-    filter: drop-shadow(0 10px 20px rgba(0,0,0,0.5));
-}
-
-.card-content { padding: 20px; }
-
-.skin-name {
-    color: var(--text-primary) !important;
-    font-size: 1.2rem;
-    font-weight: 800;
-    margin-bottom: 4px;
+    background: rgba(0, 0, 0, 0.4) !important; /* Убираем синий градиент */
+    border-bottom: 1px solid var(--border-color);
 }
 
 .skin-weapon {
-    color: var(--accent-primary);
-    font-weight: 700;
-    font-size: 0.8rem;
-    text-transform: uppercase;
+    color: var(--accent-primary) !important;
 }
 
-/* Цена и кнопка */
-.price-tag {
-    font-size: 1.4rem;
-    font-weight: 900;
-    margin: 15px 0;
-    color: var(--text-primary);
-}
-
-.btn-bid {
-    width: 100%;
-    padding: 12px;
-    background: var(--accent-primary);
-    color: white;
-    border: none;
-    border-radius: 12px;
-    font-weight: 700;
-    cursor: pointer;
-    box-shadow: 0 4px 0 var(--accent-secondary);
-}
-
-.btn-bid:active {
-    transform: translateY(3px);
-    box-shadow: 0 1px 0 var(--accent-secondary);
-}
-
-/* ==========================================================================
-   5. ТАБЛИЦА (LIST VIEW)
-   ========================================================================== */
-.skins-table {
-    width: 100%;
-    border-collapse: separate;
-    border-spacing: 0 10px;
-}
-
-.skins-table tr {
-    transition: transform 0.2s;
-}
-
-.skins-table tr:hover {
-    background: var(--bg-secondary);
-    transform: scale(1.005);
-}
-
-.skins-table th {
-    background: var(--bg-secondary);
-    color: var(--text-primary);
-    font-weight: 700;
-    text-transform: uppercase;
-    font-size: 0.75rem;
-    letter-spacing: 0.05em;
-}
-
-.skins-table th { background: var(--bg-secondary); border: none; }
-.skins-table td:first-child { border-radius: 10px 0 0 10px; }
-.skins-table td:last-child { border-radius: 0 10px 10px 0; }
-
-/* Адаптивность */
-@media (max-width: 1000px) {
-    .main-content { flex-direction: column; }
-    .form-panel { width: 100%; position: static; }
-}
-
-
-
-
-/* ==========================================================================
-   6. ПАНЕЛЬ ВАЛЮТЫ И ПРОФИЛЯ (В ХЕДЕРЕ)
-   ========================================================================== */
-.header-controls {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-}
-
-/* Выбор валюты */
-.currency-select {
-    background: rgba(255, 255, 255, 0.15);
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    color: white;
-    padding: 6px 10px;
-    border-radius: 8px;
-    font-weight: 600;
-    cursor: pointer;
-    outline: none;
-}
-
-.currency-select option {
-    background: var(--card-bg);
-    color: var(--text-primary);
-}
-
-/* Кнопка профиля / Войти */
-.auth-trigger {
-    background: var(--accent-primary);
-    color: white;
-    padding: 8px 18px;
-    border-radius: 10px;
-    font-weight: 700;
-    border: none;
-    cursor: pointer;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-}
-
-.auth-trigger:hover {
-    background: var(--accent-secondary);
-    transform: scale(1.05);
-}
-
-/* ==========================================================================
-   7. МОДАЛЬНОЕ ОКНО РЕГИСТРАЦИИ (С ВАЛИДАЦИЕЙ)
-   ========================================================================== */
-.modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.7);
-    backdrop-filter: blur(5px);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-    animation: fadeIn 0.3s ease;
-}
-
+/* 4. МОДАЛЬНЫЕ ОКНА (ГЛАВНЫЙ ФИКС СИНЕВЫ) */
+.MuiModal-root .MuiBox-root, 
+.MuiDialog-paper, 
 .auth-modal {
-    background: var(--card-bg);
-    width: 100%;
-    max-width: 400px;
-    padding: 30px;
-    border-radius: 24px;
-    border: 1px solid var(--border-color);
-    box-shadow: var(--shadow);
-    position: relative;
+    background-color: var(--bg-secondary) !important;
+    border: 2px solid var(--border-color) !important;
+    color: var(--text-primary) !important;
+    background-image: none !important;
 }
 
-.auth-modal h2 {
-    margin-bottom: 20px;
-    text-align: center;
-    color: var(--text-primary);
+/* Убираем бирюзовые кнопки в деталях */
+.MuiButton-contained, .btn-bid, .auth-trigger {
+    background-color: var(--accent-primary) !important;
+    color: white !important;
+    border-radius: 10px !important;
 }
 
-/* Стили валидации */
-.form-input.error {
-    border-color: #e74c3c !important;
-    background: rgba(231, 76, 60, 0.05);
+.MuiButton-contained:hover, .btn-bid:hover {
+    background-color: var(--accent-secondary) !important;
 }
 
-.error-message {
-    color: #e74c3c;
-    font-size: 0.75rem;
-    margin-top: 4px;
-    font-weight: 600;
+/* 5. ПРОФИЛЬ (ИСПРАВЛЕНИЕ БИРЮЗОВОГО БАЛАНСА) */
+/* Тот блок, который был бирюзовым на твоем скрине */
+.profile-balance-box, .balance-container {
+    background: var(--accent-primary) !important;
+    color: white !important;
+    border-radius: 15px;
 }
 
-.input-success-icon {
-    color: var(--success);
-    float: right;
-    margin-top: -35px;
-    margin-right: 10px;
+.profile-avatar-circle {
+    border: 3px solid var(--accent-primary) !important;
 }
 
-/* Переключатель Войти / Регистрация */
-.auth-tabs {
-    display: flex;
-    margin-bottom: 20px;
-    background: var(--bg-secondary);
-    border-radius: 12px;
-    padding: 5px;
-}
-
-.auth-tab {
-    flex: 1;
-    padding: 10px;
-    text-align: center;
-    cursor: pointer;
-    border-radius: 8px;
-    font-weight: 600;
-    color: var(--text-secondary);
-}
-
-.auth-tab.active {
-    background: var(--card-bg);
-    color: var(--accent-primary);
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-}
-
-
-
-/* Убираем стрелочки в Chrome, Safari, Edge, Opera */
-input::-webkit-outer-spin-button,
-input::-webkit-inner-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
-}
-
-/* Убираем стрелочки в Firefox */
-input[type=number] {
-  -moz-appearance: textfield;
-}
-
-/* Дополнительно: чтобы текст не прилипал к краям */
-input {
-  padding-right: 30px !important;
-}
-
-/* Перебиваем стили MUI Typography */
-.MuiTypography-root {
-    /* Теперь цвет будет зависеть от твоих переменных в :root */
-    color: var(--text-primary) !important; 
-    transition: color 0.3s ease;
-}
-
-/* Если это заголовок в шапке, который должен оставаться белым */
-.main-nav .MuiTypography-root {
-    color: #ffffff !important;
-}
-
-/* Если тебе нужно изменить конкретно тот блок с картинки (логотип или заголовок) */
-.nav-logo, .logo-text {
-    color: #ffffff !important; /* Лого обычно всегда белое на темном градиенте */
-}
-
-/* Перекрашиваем таблицу на рынке */
-.skins-table tr {
-    background: var(--card-bg) !important;
-    border-bottom: 1px solid var(--border-color) !important;
-}
-
+/* 6. ТАБЛИЦЫ */
 .skins-table th {
-    background: #2a0202 !important; /* Шапка таблицы - темно-бордовая */
-    color: var(--accent-secondary) !important;
+    background: #1a0202 !important;
+    color: var(--accent-primary) !important;
     border-bottom: 2px solid var(--accent-primary) !important;
 }
 
-/* Убираем синие тени и свечение у карточек */
-.hybrid-card, .skin-card {
-    background: var(--card-bg) !important;
+.skins-table tr:hover {
+    background: rgba(176, 27, 46, 0.05) !important;
+}
+
+/* 7. ФОРМЫ И СЕЛЕКТЫ */
+.form-group input, .form-group select {
+    background: #0a0101 !important;
     border: 1px solid var(--border-color) !important;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.5) !important;
-}
-
-.hybrid-card:hover {
-    border-color: var(--accent-secondary) !important;
-    box-shadow: 0 0 20px rgba(176, 27, 46, 0.3) !important;
-}
-
-/* Цена - делаем её красной или белой для контраста */
-.price-tag {
-    color: #ffffff !important;
-    text-shadow: 0 0 10px rgba(255, 0, 0, 0.4);
-}
-
-/* Перекрашиваем кнопки, если они были синими */
-.btn-bid, .MuiButton-contained {
-    background: var(--accent-primary) !important;
-    color: white !important;
-}
-
-.btn-bid:hover, .MuiButton-contained:hover {
-    background: var(--accent-secondary) !important;
-}
-
-
-/* Убираем синий фон у карточек и списков на темной теме */
-[data-theme="dark"] .hybrid-card, 
-[data-theme="dark"] .skin-card,
-[data-theme="dark"] .MuiPaper-root {
-    background-color: var(--card-bg) !important;
-    border: 1px solid var(--border-color) !important;
-    background-image: none !important; /* Убирает стандартные градиенты MUI */
-}
-
-/* Окрашиваем внутренний блок с картинкой (если он синий) */
-[data-theme="dark"] .card-image {
-    background: rgba(0, 0, 0, 0.3) !important;
-    border-bottom: 1px solid var(--border-color);
-}
-
-/* Кнопки переключения (Сетка / Список) */
-[data-theme="dark"] .MuiToggleButton-root {
-    color: var(--text-secondary);
-    border-color: var(--border-color);
-}
-
-[data-theme="dark"] .MuiToggleButton-root.Mui-selected {
-    background-color: var(--accent-primary) !important;
-    color: white !important;
-}
-
-select {
-    appearance: none; /* Убирает стандартную синюю стрелку Chrome */
-    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3e%3cpath d='M7 10l5 5 5-5z'/%3e%3c/svg%3e") !important;
-    background-repeat: no-repeat !important;
-    background-position: right 15px center !important;
-    background-size: 15px !important;
-}
-
-
-/* Перекрашиваем все модальные окна и контейнеры деталей в темной теме */
-[data-theme="dark"] .MuiDialog-paper, 
-[data-theme="dark"] .modal-content,
-[data-theme="dark"] .skin-details-container {
-    background-color: var(--card-bg) !important;
     color: var(--text-primary) !important;
-    border: 2px solid var(--border-color) !important;
-    background-image: none !important;
-    box-shadow: 0 0 30px rgba(0, 0, 0, 0.8) !important;
 }
 
-/* Перекрашиваем разделители и внутренние блоки в деталях */
-[data-theme="dark"] .detail-row {
-    border-bottom: 1px solid var(--border-color);
-}
-
-[data-theme="dark"] .detail-label {
-    color: var(--accent-primary);
-}
-
-
-/* ВЫЖИГАЕМ СИНЕВУ НА УРОВНЕ ГЛОБАЛЬНОГО CSS */
-
-/* 1. Фон самой модалки */
-.MuiModal-root .MuiBox-root[role="presentation"], 
-.MuiPaper-root.MuiDialog-paper,
-.MuiBox-root[style*="translate(-50%, -50%)"] {
-    background-color: #110202 !important; /* Наш бордовый */
-    background-image: none !important;
-    border: 2px solid #3d0c0c !important; /* Наша граница */
-    color: #ffffff !important;
-}
-
-/* 2. Фон под картинкой внутри модалки */
-.MuiModal-root .MuiBox-root div[style*="background"],
-.MuiModal-root .MuiBox-root .MuiBox-root {
-    background-color: rgba(0, 0, 0, 0.4) !important;
-}
-
-/* 3. Текст и иконки */
-.MuiModal-root .MuiTypography-root {
-    color: #ffffff !important;
-}
-
-.MuiModal-root .MuiIconButton-root {
-    color: #b01b2e !important; /* Красный крестик */
-}
-
-/* 4. Чиним фон страницы (чтобы точно не был синим) */
-[data-theme="dark"] body {
-    background-color: #050505 !important;
-}
-
-
-/* ИСПРАВЛЕНИЕ ВИДИМОСТИ ТЕКСТА В ВЫБОРОЧНОМ СПИСКЕ (SELECT) */
-
-/* Общие стили для всех селектов */
-.form-group select, 
-.form-group select option {
-    color: var(--text-primary) !important;
-    background-color: var(--card-bg) !important;
-}
-
-/* Принудительно для светлой темы (чтобы текст был темным) */
-[data-theme="light"] .form-group select,
-[data-theme="light"] .form-group select option {
-    color: #2d3748 !important; /* Темно-серый текст */
-    background-color: #ffffff !important; /* Белый фон */
-}
-
-/* Принудительно для темной темы (чтобы текст был светлым) */
-[data-theme="dark"] .form-group select,
-[data-theme="dark"] .form-group select option {
-    color: #ffffff !important;
-    background-color: #110202 !important; /* Наш бордовый */
-}
-
-/* Убираем синий фон при наведении в некоторых браузерах */
-select:focus {
-    outline: none;
+.form-group input:focus {
     border-color: var(--accent-primary) !important;
+    box-shadow: 0 0 0 2px rgba(176, 27, 46, 0.2) !important;
 }
 
-/* Дополнительно: фикс для инпутов, если они тоже сливаются */
-.form-group input {
-    color: var(--text-primary) !important;
+/* Фикс для выпадающих списков, чтобы не были синими */
+option {
+    background: #110202 !important;
+    color: white !important;
 }
-[data-theme="light"] .form-group input {
-    color: #2d3748 !important;
+
+/* Хром и Сафари автозаполнение */
+input:-webkit-autofill {
+    -webkit-box-shadow: 0 0 0 30px #0a0101 inset !important;
+    -webkit-text-fill-color: white !important;
+}
+
+/* 8. СКРОЛЛБАР */
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: var(--bg-primary); }
+::-webkit-scrollbar-thumb { 
+    background: var(--accent-primary); 
+    border-radius: 10px; 
+}
+::-webkit-scrollbar-thumb:hover { background: var(--accent-secondary); }
+
+
+
+/* Профиль: Главная карточка */
+.profile-header-card {
+    background: var(--bg-secondary); /* Твой темно-бордовый из конфига */
+    border-radius: 24px;
+    padding: 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 1px solid var(--border-color);
+    margin-bottom: 40px;
+}
+
+.profile-info-main {
+    display: flex;
+    align-items: center;
+    gap: 30px;
+}
+
+.profile-avatar-wrapper {
+    position: relative;
+    width: 120px;
+    height: 120px;
+}
+
+.profile-avatar-circle {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    border: 3px solid var(--accent-primary);
+    object-fit: cover;
+}
+
+.avatar-label {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    font-size: 12px;
+    color: white;
+    text-shadow: 1px 1px 2px black;
+}
+
+/* Блок баланса */
+.profile-balance-box {
+    background: #8e101d; /* Яркий акцент для баланса */
+    padding: 25px;
+    border-radius: 20px;
+    text-align: center;
+    min-width: 250px;
+}
+
+.balance-label {
+    font-size: 12px;
+    font-weight: 800;
+    opacity: 0.8;
+    letter-spacing: 1px;
+}
+
+.balance-amount {
+    font-size: 36px;
+    margin: 10px 0;
+    font-weight: 900;
+}
+
+.btn-deposit {
+    background: white;
+    color: black;
+    border: none;
+    padding: 10px 30px;
+    border-radius: 10px;
+    font-weight: 800;
+    cursor: pointer;
+    width: 100%;
+}
+
+/* Нижние секции */
+.profile-sections-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+}
+
+.section-line {
+    color: var(--accent-primary);
+    margin-right: 10px;
+    font-weight: 900;
+}
+
+.empty-text {
+    color: var(--text-secondary);
+    margin-top: 20px;
 }

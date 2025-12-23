@@ -15,7 +15,7 @@ const Login = ({ onClose, switchToRegister }) => {
     setIsLoading(true);
 
     try {
-      // Имитация запроса к API
+      
       await new Promise(resolve => setTimeout(resolve, 1000));
       
       // Демо-авторизация

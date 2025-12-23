@@ -1,10 +1,16 @@
 import { createSlice } from '@reduxjs/toolkit';
 
+// ВАЖНО: Сразу при загрузке файла проверяем наличие данных в браузере
+const savedUser = localStorage.getItem('cs2_user') 
+    ? JSON.parse(localStorage.getItem('cs2_user')) 
+    : null;
+
 const authSlice = createSlice({
   name: 'auth',
   initialState: {
-    user: null,
-    isAuthenticated: false,
+    // Теперь при F5 Redux сразу подхватит пользователя
+    user: savedUser, 
+    isAuthenticated: !!savedUser, // true если есть user, false если нет
     loading: false,
     error: null,
   },
@@ -64,14 +70,6 @@ const authSlice = createSlice({
       }
     },
     
-    // Загрузка из localStorage
-    setUserFromStorage: (state, action) => {
-      state.user = action.payload;
-      state.isAuthenticated = true;
-      state.loading = false;
-      state.error = null;
-    },
-    
     // Очистка ошибок
     clearError: (state) => {
       state.error = null;
@@ -96,35 +94,30 @@ export const {
   registerFailure,
   logout,
   updateBalance,
-  setUserFromStorage,
   clearError,
   updateProfile,
 } = authSlice.actions;
 
 export default authSlice.reducer;
 
-// Селекторы
+
 export const selectUser = (state) => state.auth.user;
 export const selectIsAuthenticated = (state) => state.auth.isAuthenticated;
 export const selectAuthLoading = (state) => state.auth.loading;
 export const selectAuthError = (state) => state.auth.error;
 export const selectUserBalance = (state) => state.auth.user?.balance || 0;
 
-// Thunk actions для асинхронных операций (если нужно)
+
 export const loginUser = (userData) => async (dispatch) => {
   dispatch(loginStart());
   try {
-    // Имитация API запроса
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    // В реальном приложении здесь был бы запрос к API
-    // const response = await api.login(userData);
+    await new Promise(resolve => setTimeout(resolve, 800));
     
     const userWithBalance = {
       ...userData,
-      id: Date.now(),
+      id: userData.id || 'user_' + Date.now(), 
       balance: userData.balance || 10000,
-      avatar: '👤',
+      avatar: 'https://avatars.githubusercontent.com/u/9919',
       joinDate: new Date().toISOString()
     };
     
@@ -137,17 +130,13 @@ export const loginUser = (userData) => async (dispatch) => {
 export const registerUser = (userData) => async (dispatch) => {
   dispatch(registerStart());
   try {
-    // Имитация API запроса
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    // В реальном приложении здесь был бы запрос к API
-    // const response = await api.register(userData);
+    await new Promise(resolve => setTimeout(resolve, 800));
     
     const userWithBalance = {
       ...userData,
-      id: Date.now(),
-      balance: 10000, // Стартовый баланс
-      avatar: '👤',
+      id: 'user_' + Date.now(),
+      balance: 10000, 
+      avatar: 'https://avatars.githubusercontent.com/u/9919',
       joinDate: new Date().toISOString()
     };
     

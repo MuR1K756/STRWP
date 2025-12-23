@@ -25,7 +25,7 @@ const SkinImage = ({ skin, className, onClick }) => {
       'M249': '#2c3e50',
       'Negev': '#f1c40f'
     };
-    return colors[weapon] || '#4ecdc4';
+    return colors[weapon] || '#b01b2e';
   };
 
   if (image) {
@@ -46,7 +46,10 @@ const SkinImage = ({ skin, className, onClick }) => {
     <div 
       className={`skin-image placeholder ${className || ''}`} 
       onClick={onClick}
-      style={{ background: `linear-gradient(135deg, ${getWeaponColor(weapon)} 0%, #1a1a2e 100%)` }}
+      style={{ 
+  background: `linear-gradient(135deg, ${getWeaponColor(weapon)}22 0%, #0a0a0a 100%)`,
+  border: `1px solid ${getWeaponColor(weapon)}44` // Добавим легкое свечение в цвет пушки
+}}
     >
       <div className="skin-placeholder-content">
         <div className="weapon-name">{weapon}</div>
