@@ -9,7 +9,7 @@ const Form = ({ handleSubmit, inSkin, isEditing, user }) => {
     const themeMode = useAppSelector(selectTheme);
     const isDark = themeMode === 'dark';
     
-    // Состояние для ошибок (Валидация для препода)
+    
     const [errors, setErrors] = useState({});
 
     const [skin, setSkin] = useState({
