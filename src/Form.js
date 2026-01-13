@@ -9,7 +9,9 @@ const Form = ({ handleSubmit, inSkin, isEditing, user }) => {
     const themeMode = useAppSelector(selectTheme);
     const isDark = themeMode === 'dark';
     
-    // Начальное состояние
+    // Состояние для ошибок (Валидация для препода)
+    const [errors, setErrors] = useState({});
+
     const [skin, setSkin] = useState({
         weapon: '',
         name: '',
@@ -24,7 +26,6 @@ const Form = ({ handleSubmit, inSkin, isEditing, user }) => {
     const [imagePreview, setImagePreview] = useState(null);
     const [isCustomName, setIsCustomName] = useState(false);
 
-    // ЭФФЕКТ ДЛЯ РЕДАКТИРОВАНИЯ
     useEffect(() => {
         if (isEditing && inSkin) {
             setSkin({
@@ -51,14 +52,36 @@ const Form = ({ handleSubmit, inSkin, isEditing, user }) => {
     const exchangeRates = useAppSelector(selectExchangeRates);
     const rate = exchangeRates[currentCurrency] || 1;
     
-    // Безопасное вычисление отображаемой цены
     const displayValue = skin.price ? Math.round(Number(skin.price) * rate) : '';
+
+    // --- ФУНКЦИЯ ВАЛИДАЦИИ  ---
+    const validateForm = () => {
+        let tempErrors = {};
+        if (!skin.weapon) tempErrors.weapon = "Нужно выбрать тип оружия";
+        if (!skin.name || skin.name.length < 3) tempErrors.name = "Название слишком короткое (мин. 3 символа)";
+        if (!skin.imageUrl || !skin.imageUrl.startsWith('http')) tempErrors.imageUrl = "Введите корректную ссылку на картинку";
+        if (skin.price <= 0) tempErrors.price = "Цена должна быть больше нуля";
+        
+        setErrors(tempErrors);
+        // Возвращаем true, если объект ошибок пустой
+        return Object.keys(tempErrors).length === 0;
+    };
+
+    const handleFormSubmit = (e) => {
+        e.preventDefault();
+        // Сначала запускаем валидацию
+        if (validateForm()) {
+            handleSubmit({...skin, ownerId: user.id});
+        }
+    };
 
     const handleWeaponChange = (e) => {
         const weapon = e.target.value;
         setSkin(prev => ({ ...prev, weapon, name: '', imageUrl: '' }));
         setImagePreview(null);
         setIsCustomName(false);
+        // Очищаем ошибку при изменении
+        if (errors.weapon) setErrors(prev => ({...prev, weapon: null}));
     };
 
     const handleSkinNameChange = (e) => {
@@ -75,6 +98,7 @@ const Form = ({ handleSubmit, inSkin, isEditing, user }) => {
             setSkin(prev => ({ ...prev, name: fullName, imageUrl: skinData.url }));
             setImagePreview(skinData.url);
         }
+        if (errors.name) setErrors(prev => ({...prev, name: null}));
     };
 
     const handleFloatChange = (e) => {
@@ -84,7 +108,6 @@ const Form = ({ handleSubmit, inSkin, isEditing, user }) => {
         setSkin(prev => ({ ...prev, float: val }));
     };
 
-    // Валидация: проверяем еще и наличие ownerId
     const isFormValid = skin.weapon && skin.name && skin.imageUrl && skin.price > 0 && user?.id;
 
     const styles = {
@@ -99,16 +122,23 @@ const Form = ({ handleSubmit, inSkin, isEditing, user }) => {
             color: 'var(--text-primary)'
         },
         sectionTitle: { fontSize: '0.75rem', fontWeight: '900', color: 'var(--accent-primary)', textTransform: 'uppercase', marginBottom: '8px' },
-        input: {
+        input: (hasError) => ({
             width: '100%',
             padding: '14px',
             borderRadius: '12px',
             background: isDark ? '#1a0505' : '#ffffff', 
-            border: '2px solid var(--border-color)',
+            border: hasError ? '2px solid #ff4444' : '2px solid var(--border-color)',
             color: isDark ? '#ffffff' : '#000000',
-            marginBottom: '1.2rem',
+            marginBottom: hasError ? '4px' : '1.2rem',
             outline: 'none',
             fontSize: '1rem'
+        }),
+        errorText: {
+            color: '#ff4444',
+            fontSize: '0.7rem',
+            marginBottom: '1rem',
+            display: 'block',
+            fontWeight: 'bold'
         },
         option: {
             background: isDark ? '#1a0505' : '#ffffff',
@@ -124,10 +154,10 @@ const Form = ({ handleSubmit, inSkin, isEditing, user }) => {
 
     return (
         <div style={styles.panel}>
-            <form onSubmit={(e) => { e.preventDefault(); if(isFormValid) handleSubmit({...skin, ownerId: user.id}); }}>
+            <form onSubmit={handleFormSubmit}>
                 
                 <p style={styles.sectionTitle}>1. Оружие</p>
-                <select style={styles.input} value={skin.weapon} onChange={handleWeaponChange} required>
+                <select style={styles.input(!!errors.weapon)} value={skin.weapon} onChange={handleWeaponChange}>
                     <option value="" style={styles.option}>Выберите пушку</option>
                     <optgroup label="Пистолеты" style={styles.option}>
                         <option value="Glock-18">Glock-18</option>
@@ -140,7 +170,6 @@ const Form = ({ handleSubmit, inSkin, isEditing, user }) => {
                         <option value="CZ75-Auto">CZ75-Auto</option>
                         <option value="R8 Revolver">R8 Revolver</option>
                     </optgroup>
-
                     <optgroup label="Винтовки" style={styles.option}>
                         <option value="AK-47">AK-47</option>
                         <option value="M4A4">M4A4</option>
@@ -150,14 +179,12 @@ const Form = ({ handleSubmit, inSkin, isEditing, user }) => {
                         <option value="AUG">AUG</option>
                         <option value="SG 553">SG 553</option>
                     </optgroup>
-
                     <optgroup label="Снайперские" style={styles.option}>
                         <option value="AWP">AWP</option>
                         <option value="SSG 08">SSG 08</option>
                         <option value="SCAR-20">SCAR-20</option>
                         <option value="G3SG1">G3SG1</option>
                     </optgroup>
-
                     <optgroup label="ПП (SMGs)" style={styles.option}>
                         <option value="MAC-10">MAC-10</option>
                         <option value="MP9">MP9</option>
@@ -167,7 +194,6 @@ const Form = ({ handleSubmit, inSkin, isEditing, user }) => {
                         <option value="P90">P90</option>
                         <option value="PP-Bizon">PP-Bizon</option>
                     </optgroup>
-
                     <optgroup label="Тяжелое" style={styles.option}>
                         <option value="Nova">Nova</option>
                         <option value="XM1014">XM1014</option>
@@ -176,7 +202,6 @@ const Form = ({ handleSubmit, inSkin, isEditing, user }) => {
                         <option value="M249">M249</option>
                         <option value="Negev">Negev</option>
                     </optgroup>
-
                     <optgroup label="Ножи" style={styles.option}>
                         <option value="Karambit">Karambit</option>
                         <option value="Butterfly Knife">Butterfly Knife</option>
@@ -200,14 +225,14 @@ const Form = ({ handleSubmit, inSkin, isEditing, user }) => {
                         <option value="Classic Knife">Classic Knife</option>
                     </optgroup>
                 </select>
+                {errors.weapon && <span style={styles.errorText}>{errors.weapon}</span>}
 
                 <p style={styles.sectionTitle}>2. Скин</p>
                 {skin.weapon && SKINS_DATABASE[skin.weapon] && !isCustomName ? (
                     <select 
-                        style={styles.input} 
+                        style={styles.input(!!errors.name)} 
                         value={skin.name.split(' | ')[1] || ''} 
                         onChange={handleSkinNameChange} 
-                        required
                     >
                         <option value="" style={styles.option}>Выберите раскраску</option>
                         {SKINS_DATABASE[skin.weapon].map(s => (
@@ -216,12 +241,13 @@ const Form = ({ handleSubmit, inSkin, isEditing, user }) => {
                         <option value="CUSTOM" style={styles.option}>+ Свой вариант</option>
                     </select>
                 ) : (
-                    <input style={styles.input} type="text" value={skin.name} onChange={(e) => setSkin({...skin, name: e.target.value})} placeholder="Название предмета" required />
+                    <input style={styles.input(!!errors.name)} type="text" value={skin.name} onChange={(e) => setSkin({...skin, name: e.target.value})} placeholder="Название предмета" />
                 )}
+                {errors.name && <span style={styles.errorText}>{errors.name}</span>}
 
                 <p style={styles.sectionTitle}>3. Качество предмета</p>
                 <select 
-                    style={styles.input} 
+                    style={styles.input(false)} 
                     value={skin.quality} 
                     onChange={(e) => setSkin({...skin, quality: e.target.value})}
                 >
@@ -233,7 +259,8 @@ const Form = ({ handleSubmit, inSkin, isEditing, user }) => {
                 </select>
 
                 <p style={styles.sectionTitle}>4. Изображение</p>
-                <input style={styles.input} type="url" value={skin.imageUrl} onChange={(e) => { setSkin({...skin, imageUrl: e.target.value}); setImagePreview(e.target.value); }} placeholder="URL картинки" required />
+                <input style={styles.input(!!errors.imageUrl)} type="url" value={skin.imageUrl} onChange={(e) => { setSkin({...skin, imageUrl: e.target.value}); setImagePreview(e.target.value); }} placeholder="URL картинки" />
+                {errors.imageUrl && <span style={styles.errorText}>{errors.imageUrl}</span>}
                 
                 {imagePreview && (
                     <div style={{ textAlign: 'center', background: 'rgba(0,0,0,0.2)', padding: '10px', borderRadius: '15px', marginBottom: '1rem', border: '1px solid var(--border-color)' }}>
@@ -253,7 +280,7 @@ const Form = ({ handleSubmit, inSkin, isEditing, user }) => {
                 <div style={{ display: 'flex', gap: '15px' }}>
                     <div style={{ flex: 2 }}>
                         <input 
-                            style={styles.input} 
+                            style={styles.input(!!errors.price)} 
                             type="text" 
                             value={displayValue} 
                             onChange={(e) => {
@@ -262,17 +289,17 @@ const Form = ({ handleSubmit, inSkin, isEditing, user }) => {
                                 setSkin({...skin, price: basePrice});
                             }} 
                             placeholder="Цена" 
-                            required 
                         />
                     </div>
                     <div style={{ flex: 1.5 }}>
-                        <input style={styles.input} type="text" value={skin.float} onChange={handleFloatChange} placeholder="Float" />
+                        <input style={styles.input(false)} type="text" value={skin.float} onChange={handleFloatChange} placeholder="Float" />
                     </div>
                 </div>
+                {errors.price && <span style={styles.errorText}>{errors.price}</span>}
 
                 {!user?.id && <p style={{color: '#ff4444', fontSize: '0.8rem', marginBottom: '10px', textAlign: 'center'}}>Нужна авторизация для продажи</p>}
 
-                <button type="submit" disabled={!isFormValid} style={{ width: '100%', padding: '18px', background: 'var(--accent-primary)', color: '#fff', border: 'none', borderRadius: '12px', fontWeight: 'bold', cursor: isFormValid ? 'pointer' : 'not-allowed' }}>
+                <button type="submit" disabled={!isFormValid && !isEditing} style={{ width: '100%', padding: '18px', background: 'var(--accent-primary)', color: '#fff', border: 'none', borderRadius: '12px', fontWeight: 'bold', cursor: isFormValid ? 'pointer' : 'not-allowed' }}>
                     {isEditing ? 'ОБНОВИТЬ СКИН' : 'ВЫСТАВИТЬ НА ПРОДАЖУ'}
                 </button>
             </form>

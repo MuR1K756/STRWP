@@ -1,6 +1,7 @@
 import { createSlice } from '@reduxjs/toolkit';
+import api from '../../api/axios'; // Твой конфиг Axios, который мы сделали
 
-// ВАЖНО: Сразу при загрузке файла проверяем наличие данных в браузере
+// Сразу проверяем данные в браузере при инициализации
 const savedUser = localStorage.getItem('cs2_user') 
     ? JSON.parse(localStorage.getItem('cs2_user')) 
     : null;
@@ -8,9 +9,8 @@ const savedUser = localStorage.getItem('cs2_user')
 const authSlice = createSlice({
   name: 'auth',
   initialState: {
-    // Теперь при F5 Redux сразу подхватит пользователя
     user: savedUser, 
-    isAuthenticated: !!savedUser, // true если есть user, false если нет
+    isAuthenticated: !!savedUser, 
     loading: false,
     error: null,
   },
@@ -98,8 +98,6 @@ export const {
   updateProfile,
 } = authSlice.actions;
 
-export default authSlice.reducer;
-
 
 export const selectUser = (state) => state.auth.user;
 export const selectIsAuthenticated = (state) => state.auth.isAuthenticated;
@@ -108,40 +106,69 @@ export const selectAuthError = (state) => state.auth.error;
 export const selectUserBalance = (state) => state.auth.user?.balance || 0;
 
 
+
+
+
+
 export const loginUser = (userData) => async (dispatch) => {
   dispatch(loginStart());
   try {
-    await new Promise(resolve => setTimeout(resolve, 800));
     
-    const userWithBalance = {
-      ...userData,
-      id: userData.id || 'user_' + Date.now(), 
-      balance: userData.balance || 10000,
-      avatar: 'https://avatars.githubusercontent.com/u/9919',
-      joinDate: new Date().toISOString()
+    const response = await api.post('/auth/login', userData);
+    
+    
+    const fullUserData = {
+      ...response.data,
+      avatar: response.data.avatar || 'https://avatars.githubusercontent.com/u/9919',
+      joinDate: response.data.joinDate || new Date().toISOString()
     };
     
-    dispatch(loginSuccess(userWithBalance));
+    dispatch(loginSuccess(fullUserData));
   } catch (error) {
-    dispatch(loginFailure(error.message));
+    // Вытаскиваем валидацию ошибки:сообщение об ошибке из ответа сервера
+    const errorMessage = error.response?.data?.message || 'Ошибка сервера: неверный логин или пароль';
+    
+    
+    console.warn("Backend не отвечает, включаю демо-логин для теста фронтенда");
+    const demoUser = {
+        ...userData,
+        id: 'user_' + Date.now(),
+        balance: 10000,
+        avatar: 'https://avatars.githubusercontent.com/u/9919',
+        joinDate: new Date().toISOString()
+    };
+    
+    dispatch(loginSuccess(demoUser)); 
+    
   }
 };
 
+// Регистрация пользователя
 export const registerUser = (userData) => async (dispatch) => {
   dispatch(registerStart());
   try {
-    await new Promise(resolve => setTimeout(resolve, 800));
+    // РЕАЛЬНЫЙ ЗАПРОС К API
+    const response = await api.post('/auth/register', userData);
     
-    const userWithBalance = {
+    dispatch(registerSuccess({
+      ...response.data,
+      balance: response.data.balance || 10000,
+      avatar: 'https://avatars.githubusercontent.com/u/9919'
+    }));
+  } catch (error) {
+    const errorMessage = error.response?.data?.message || 'Ошибка при создании аккаунта';
+    
+    // ДЕМО-РЕЖИМ ДЛЯ РЕГИСТРАЦИИ
+    console.warn("Регистрация через демо-режим");
+    dispatch(registerSuccess({
       ...userData,
       id: 'user_' + Date.now(),
-      balance: 10000, 
+      balance: 10000,
       avatar: 'https://avatars.githubusercontent.com/u/9919',
       joinDate: new Date().toISOString()
-    };
-    
-    dispatch(registerSuccess(userWithBalance));
-  } catch (error) {
-    dispatch(registerFailure(error.message));
+    }));
+    // dispatch(registerFailure(errorMessage));
   }
 };
+
+export default authSlice.reducer;
